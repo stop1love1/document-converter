@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Converter</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="header-top">
+                <h1><i class="fas fa-file-alt"></i> Document Converter</h1>
+                <div class="theme-switch-wrapper">
+                    <label class="theme-switch" for="theme-toggle">
+                        <input type="checkbox" id="theme-toggle" title="Toggle dark/light mode" aria-label="Toggle dark/light mode"/>
+                        <div class="slider round">
+                            <i class="fas fa-sun"></i>
+                            <i class="fas fa-moon"></i>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            <p class="subtitle">Convert between different document formats using Pandoc</p>
+            <div class="header-links">
+                <a href="/api/docs/" target="_blank" rel="noopener" class="api-link"><i class="fas fa-book"></i> API Documentation</a>
+                <a href="https://github.com/stop1love1/document-converter" target="_blank" rel="noopener" class="github-link"><i class="fab fa-github"></i> GitHub</a>
+            </div>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="file-tab"><i class="fas fa-file-upload"></i> Upload File</button>
+            <button class="tab-btn" data-tab="text-tab"><i class="fas fa-align-left"></i> Convert Text</button>
+            <button class="tab-btn" data-tab="base64-tab"><i class="fas fa-code"></i> Base64 Input</button>
+        </div>
+
+        <div class="tab-content">
+            <!-- File Upload Tab -->
+            <div id="file-tab" class="tab-pane active">
+                <form id="file-form" enctype="multipart/form-data">
+                    <div class="file-upload-container">
+                        <label for="file-input" class="file-upload-label">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span>Choose a file or drag it here</span>
+                        </label>
+                        <input type="file" id="file-input" class="file-upload-input" required>
+                        <div id="file-name" class="file-name"></div>
+                    </div>
+                    
+                    <div class="quick-formats">
+                        <h4>Quick Convert:</h4>
+                        <div class="quick-format-buttons">
+                            <button type="button" class="quick-format-btn" data-from="docx" data-to="pdf">DOCX → PDF</button>
+                            <button type="button" class="quick-format-btn" data-from="md" data-to="html">MD → HTML</button>
+                            <button type="button" class="quick-format-btn" data-from="html" data-to="docx">HTML → DOCX</button>
+                            <button type="button" class="quick-format-btn" data-from="md" data-to="docx">MD → DOCX</button>
+                        </div>
+                    </div>
+                    
+                    <div class="format-container">
+                        <div class="form-group">
+                            <label for="file-from-format"><i class="fas fa-file-import"></i> From Format:</label>
+                            <div class="select-container">
+                                <input type="text" id="file-from-format" list="input-formats" placeholder="e.g., docx, md" required pattern="[a-zA-Z0-9_-]+" title="Format should contain only letters, numbers, underscores and hyphens">
+                                <datalist id="input-formats">
+                                    {% for format in input_formats %}
+                                    <option value="{{ format }}">
+                                    {% endfor %}
+                                </datalist>
+                            </div>
+                            <div class="recent-formats">
+                                <span class="recent-label">Recent:</span>
+                                <div id="recent-from-formats" class="recent-format-tags"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="arrow"><i class="fas fa-arrow-right"></i></div>
+                        
+                        <div class="form-group">
+                            <label for="file-to-format"><i class="fas fa-file-export"></i> To Format:</label>
+                            <div class="select-container">
+                                <input type="text" id="file-to-format" list="output-formats" placeholder="e.g., html, pdf" required pattern="[a-zA-Z0-9_-]+" title="Format should contain only letters, numbers, underscores and hyphens">
+                                <datalist id="output-formats">
+                                    {% for format in output_formats %}
+                                    <option value="{{ format }}">
+                                    {% endfor %}
+                                </datalist>
+                            </div>
+                            <div class="recent-formats">
+                                <span class="recent-label">Recent:</span>
+                                <div id="recent-to-formats" class="recent-format-tags"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="file-options"><i class="fas fa-sliders-h"></i> Options (optional):</label>
+                        <div class="options-container">
+                            <input type="text" id="file-options" list="common-options" placeholder="e.g., --toc --standalone">
+                            <datalist id="common-options">
+                                {% for option in common_options %}
+                                <option value="{{ option }}">
+                                {% endfor %}
+                            </datalist>
+                            <div class="options-help">
+                                <i class="fas fa-question-circle" title="Click to view common options"></i>
+                                <div class="options-tooltip">
+                                    <h3>Common Options:</h3>
+                                    <ul>
+                                        <li><code>--toc</code>: Add table of contents</li>
+                                        <li><code>--standalone</code>: Create standalone document</li>
+                                        <li><code>--self-contained</code>: Embed images in HTML</li>
+                                        <li><code>--metadata=title:"My Title"</code>: Set metadata</li>
+                                        <li><code>--pdf-engine=xelatex</code>: Select PDF engine</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn"><i class="fas fa-sync-alt"></i> Convert</button>
+                </form>
+            </div>
+
+            <!-- Text Content Tab -->
+            <div id="text-tab" class="tab-pane">
+                <form id="text-form">
+                    <div class="form-group">
+                        <label for="text-content"><i class="fas fa-edit"></i> Text Content:</label>
+                        <textarea id="text-content" rows="10" required placeholder="Paste your text content here..."></textarea>
+                    </div>
+                    
+                    <div class="format-container">
+                        <div class="form-group">
+                            <label for="text-from-format"><i class="fas fa-file-import"></i> From Format:</label>
+                            <div class="select-container">
+                                <input type="text" id="text-from-format" list="input-formats-text" placeholder="e.g., markdown" required pattern="[a-zA-Z0-9_-]+" title="Format should contain only letters, numbers, underscores and hyphens">
+                                <datalist id="input-formats-text">
+                                    {% for format in input_formats %}
+                                    <option value="{{ format }}">
+                                    {% endfor %}
+                                </datalist>
+                            </div>
+                        </div>
+                        
+                        <div class="arrow"><i class="fas fa-arrow-right"></i></div>
+                        
+                        <div class="form-group">
+                            <label for="text-to-format"><i class="fas fa-file-export"></i> To Format:</label>
+                            <div class="select-container">
+                                <input type="text" id="text-to-format" list="output-formats-text" placeholder="e.g., html" required pattern="[a-zA-Z0-9_-]+" title="Format should contain only letters, numbers, underscores and hyphens">
+                                <datalist id="output-formats-text">
+                                    {% for format in output_formats %}
+                                    <option value="{{ format }}">
+                                    {% endfor %}
+                                </datalist>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="text-options"><i class="fas fa-sliders-h"></i> Options (optional):</label>
+                        <div class="options-container">
+                            <input type="text" id="text-options" list="common-options-text" placeholder="e.g., --toc --standalone">
+                            <datalist id="common-options-text">
+                                {% for option in common_options %}
+                                <option value="{{ option }}">
+                                {% endfor %}
+                            </datalist>
+                            <div class="options-help">
+                                <i class="fas fa-question-circle" title="Click to view common options"></i>
+                                <div class="options-tooltip">
+                                    <h3>Common Options:</h3>
+                                    <ul>
+                                        <li><code>--toc</code>: Add table of contents</li>
+                                        <li><code>--standalone</code>: Create standalone document</li>
+                                        <li><code>--self-contained</code>: Embed images in HTML</li>
+                                        <li><code>--metadata=title:"My Title"</code>: Set metadata</li>
+                                        <li><code>--pdf-engine=xelatex</code>: Select PDF engine</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn"><i class="fas fa-sync-alt"></i> Convert</button>
+                </form>
+            </div>
+
+            <!-- Base64 Tab -->
+            <div id="base64-tab" class="tab-pane">
+                <form id="base64-form">
+                    <div class="form-group">
+                        <label for="base64-input"><i class="fas fa-code"></i> Base64 Content:</label>
+                        <textarea id="base64-input" rows="10" required placeholder="Paste your base64 encoded content here..."></textarea>
+                    </div>
+                    
+                    <div class="format-container">
+                        <div class="form-group">
+                            <label for="base64-from-format"><i class="fas fa-file-import"></i> From Format:</label>
+                            <div class="select-container">
+                                <input type="text" id="base64-from-format" list="input-formats-base64" placeholder="e.g., docx, md" required pattern="[a-zA-Z0-9_-]+" title="Format should contain only letters, numbers, underscores and hyphens">
+                                <datalist id="input-formats-base64">
+                                    {% for format in input_formats %}
+                                    <option value="{{ format }}">
+                                    {% endfor %}
+                                </datalist>
+                            </div>
+                        </div>
+                        
+                        <div class="arrow"><i class="fas fa-arrow-right"></i></div>
+                        
+                        <div class="form-group">
+                            <label for="base64-to-format"><i class="fas fa-file-export"></i> To Format:</label>
+                            <div class="select-container">
+                                <input type="text" id="base64-to-format" list="output-formats-base64" placeholder="e.g., html, pdf" required pattern="[a-zA-Z0-9_-]+" title="Format should contain only letters, numbers, underscores and hyphens">
+                                <datalist id="output-formats-base64">
+                                    {% for format in output_formats %}
+                                    <option value="{{ format }}">
+                                    {% endfor %}
+                                </datalist>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="base64-options"><i class="fas fa-sliders-h"></i> Options (optional):</label>
+                        <div class="options-container">
+                            <input type="text" id="base64-options" list="common-options-base64" placeholder="e.g., --toc --standalone">
+                            <datalist id="common-options-base64">
+                                {% for option in common_options %}
+                                <option value="{{ option }}">
+                                {% endfor %}
+                            </datalist>
+                            <div class="options-help">
+                                <i class="fas fa-question-circle" title="Click to view common options"></i>
+                                <div class="options-tooltip">
+                                    <h3>Common Options:</h3>
+                                    <ul>
+                                        <li><code>--toc</code>: Add table of contents</li>
+                                        <li><code>--standalone</code>: Create standalone document</li>
+                                        <li><code>--self-contained</code>: Embed images in HTML</li>
+                                        <li><code>--metadata=title:"My Title"</code>: Set metadata</li>
+                                        <li><code>--pdf-engine=xelatex</code>: Select PDF engine</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn"><i class="fas fa-sync-alt"></i> Convert</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="progress-container" id="progress-container">
+            <div class="progress-bar" id="progress-bar"><div class="progress-text">0%</div></div>
+        </div>
+
+        <div id="result" class="result-container"></div>
+
+        <div class="conversion-history" id="conversion-history">
+            <h3><i class="fas fa-history"></i> Recent Conversions</h3>
+            <div class="history-list" id="history-list">
+                <!-- History items will be inserted here by JavaScript -->
+            </div>
+            <button id="clear-history" class="btn-small" aria-label="Clear conversion history"><i class="fas fa-trash"></i> Clear History</button>
+        </div>
+
+        <footer>
+            <p>Created by <strong>{{ author }}</strong> | Based on <a href="https://pandoc.org/" target="_blank" rel="noopener noreferrer">Pandoc</a> | <a href="https://github.com/stop1love1/document-converter" target="_blank" rel="noopener noreferrer"><i class="fab fa-github"></i> GitHub</a></p>
+        </footer>
+    </div>
+
+    <div class="keyboard-shortcuts-modal" id="keyboard-shortcuts-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Keyboard Shortcuts</h3>
+                <button title="X" class="close-btn" id="close-shortcuts-modal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <table>
+                    <tr>
+                        <td><kbd>Alt</kbd> + <kbd>F</kbd></td>
+                        <td>Switch to File tab</td>
+                    </tr>
+                    <tr>
+                        <td><kbd>Alt</kbd> + <kbd>T</kbd></td>
+                        <td>Switch to Text tab</td>
+                    </tr>
+                    <tr>
+                        <td><kbd>Alt</kbd> + <kbd>B</kbd></td>
+                        <td>Switch to Base64 tab</td>
+                    </tr>
+                    <tr>
+                        <td><kbd>Alt</kbd> + <kbd>C</kbd></td>
+                        <td>Trigger conversion</td>
+                    </tr>
+                    <tr>
+                        <td><kbd>Alt</kbd> + <kbd>K</kbd></td>
+                        <td>Show/hide keyboard shortcuts</td>
+                    </tr>
+                    <tr>
+                        <td><kbd>Alt</kbd> + <kbd>D</kbd></td>
+                        <td>Toggle dark mode</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <button class="keyboard-shortcuts-btn" id="show-shortcuts-btn" title="Show keyboard shortcuts">
+        <i class="fas fa-keyboard"></i>
+    </button>
+
+    <script src="/static/js/script.js"></script>
+</body>
+
+</html>
