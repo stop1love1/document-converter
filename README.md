@@ -4,12 +4,14 @@ A simple web-based document conversion tool built with Flask and Pandoc.
 
 ![Document Converter Screenshot](docs/screenshot.png)
 
+## Demo
+
+Try the live demo: [Document Converter Demo](https://document-converter.edusoft.vn/)
+
 ## Key Features
 
 - Convert files, text, or base64 content between multiple formats
 - Support for custom Pandoc options
-- Drag & drop file upload
-- Responsive design
 
 ## Requirements
 
