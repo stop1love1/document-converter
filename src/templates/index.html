@@ -49,6 +49,9 @@
                         </label>
                         <input type="file" id="file-input" class="file-upload-input" required>
                         <div id="file-name" class="file-name"></div>
+                        <button type="button" id="preview-file-btn" class="preview-btn" style="display: none;">
+                            <i class="fas fa-eye"></i> Preview File
+                        </button>
                     </div>
                     
                     <div class="quick-formats">
@@ -114,9 +117,20 @@
                     </div>
                     
                     <div class="form-group">
-                        <label for="file-options"><i class="fas fa-sliders-h"></i> Options (optional):</label>
+                        <label for="file-options"><i class="fas fa-sliders-h"></i> Options:</label>
                         <div class="options-container">
-                            <input type="text" id="file-options" placeholder="e.g., --toc --standalone">
+                            <select id="file-options-select" class="options-select" multiple title="Select common options">
+                                {% for option in common_options %}
+                                <option value="{{ option }}">{{ option }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="custom-options">
+                                <input type="text" id="file-custom-option" placeholder="Add custom option..." title="Enter custom option">
+                                <button type="button" id="file-add-option" class="add-option-btn" title="Add custom option">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                            <input type="hidden" id="file-options" name="options">
                             <div class="selected-options" id="file-selected-options"></div>
                             <div class="options-help">
                                 <i class="fas fa-question-circle" title="Click to view common options"></i>
@@ -138,6 +152,18 @@
                     
                     <button type="submit" class="btn"><i class="fas fa-sync-alt"></i> Convert</button>
                 </form>
+                <div id="file-result-container" class="result-container" style="display: none;">
+                    <div class="result-header">
+                        <div class="result-title">
+                            <i class="fas fa-check-circle"></i> Conversion Result
+                        </div>
+                        <div class="result-actions">
+                            <button id="file-download-btn" class="btn-small"><i class="fas fa-download"></i> Download</button>
+                            <button id="file-copy-btn" class="btn-small"><i class="fas fa-copy"></i> Copy</button>
+                        </div>
+                    </div>
+                    <div id="file-result-content" class="result-content"></div>
+                </div>
             </div>
 
             <!-- Text Content Tab -->
@@ -179,9 +205,20 @@
                     </div>
                     
                     <div class="form-group">
-                        <label for="text-options"><i class="fas fa-sliders-h"></i> Options (optional):</label>
+                        <label for="text-options"><i class="fas fa-sliders-h"></i> Options:</label>
                         <div class="options-container">
-                            <input type="text" id="text-options" placeholder="e.g., --toc --standalone">
+                            <select id="text-options-select" class="options-select" multiple title="Select common options">
+                                {% for option in common_options %}
+                                <option value="{{ option }}">{{ option }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="custom-options">
+                                <input type="text" id="text-custom-option" placeholder="Add custom option..." title="Enter custom option">
+                                <button type="button" id="text-add-option" class="add-option-btn" title="Add custom option">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                            <input type="hidden" id="text-options" name="options">
                             <div class="selected-options" id="text-selected-options"></div>
                             <div class="options-help">
                                 <i class="fas fa-question-circle" title="Click to view common options"></i>
@@ -203,6 +240,18 @@
                     
                     <button type="submit" class="btn"><i class="fas fa-sync-alt"></i> Convert</button>
                 </form>
+                <div id="text-result-container" class="result-container" style="display: none;">
+                    <div class="result-header">
+                        <div class="result-title">
+                            <i class="fas fa-check-circle"></i> Conversion Result
+                        </div>
+                        <div class="result-actions">
+                            <button id="text-copy-btn" class="btn-small"><i class="fas fa-copy"></i> Copy</button>
+                            <button id="text-preview-btn" class="btn-small"><i class="fas fa-eye"></i> Preview</button>
+                        </div>
+                    </div>
+                    <div id="text-result-content" class="result-content"></div>
+                </div>
             </div>
 
             <!-- Base64 Tab -->
@@ -244,9 +293,20 @@
                     </div>
                     
                     <div class="form-group">
-                        <label for="base64-options"><i class="fas fa-sliders-h"></i> Options (optional):</label>
+                        <label for="base64-options"><i class="fas fa-sliders-h"></i> Options:</label>
                         <div class="options-container">
-                            <input type="text" id="base64-options" placeholder="e.g., --toc --standalone">
+                            <select id="base64-options-select" class="options-select" multiple title="Select common options">
+                                {% for option in common_options %}
+                                <option value="{{ option }}">{{ option }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="custom-options">
+                                <input type="text" id="base64-custom-option" placeholder="Add custom option..." title="Enter custom option">
+                                <button type="button" id="base64-add-option" class="add-option-btn" title="Add custom option">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                            <input type="hidden" id="base64-options" name="options">
                             <div class="selected-options" id="base64-selected-options"></div>
                             <div class="options-help">
                                 <i class="fas fa-question-circle" title="Click to view common options"></i>
@@ -268,6 +328,18 @@
                     
                     <button type="submit" class="btn"><i class="fas fa-sync-alt"></i> Convert</button>
                 </form>
+                <div id="base64-result-container" class="result-container" style="display: none;">
+                    <div class="result-header">
+                        <div class="result-title">
+                            <i class="fas fa-check-circle"></i> Conversion Result
+                        </div>
+                        <div class="result-actions">
+                            <button id="base64-copy-btn" class="btn-small"><i class="fas fa-copy"></i> Copy</button>
+                            <button id="base64-download-btn" class="btn-small"><i class="fas fa-download"></i> Download</button>
+                        </div>
+                    </div>
+                    <div id="base64-result-content" class="result-content"></div>
+                </div>
             </div>
         </div>
 
@@ -330,6 +402,37 @@
         </div>
     </div>
 
+    <!-- Preview modals -->
+    <div class="preview-modal" id="file-preview-modal">
+        <div class="preview-modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">File Preview</h3>
+                <button class="close-btn close-modal" data-modal="file-preview-modal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div id="file-preview-content"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn close-modal" data-modal="file-preview-modal">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="preview-modal" id="content-preview-modal">
+        <div class="preview-modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Content Preview</h3>
+                <button class="close-btn close-modal" data-modal="content-preview-modal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div id="content-preview-container"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn close-modal" data-modal="content-preview-modal">Close</button>
+            </div>
+        </div>
+    </div>
+
     <button class="keyboard-shortcuts-btn" id="show-shortcuts-btn" title="Show keyboard shortcuts">
         <i class="fas fa-keyboard"></i>
     </button>
@@ -343,6 +446,7 @@
                     <span class="filename"></span>
                 </div>
                 <div class="history-item-actions">
+                    <button class="history-preview-btn" title="Preview content"><i class="fas fa-eye"></i></button>
                     <button class="history-download-btn" title="Download file"><i class="fas fa-download"></i></button>
                     <button class="history-delete-btn" title="Remove from history"><i class="fas fa-times"></i></button>
                 </div>
