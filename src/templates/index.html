@@ -7,6 +7,7 @@
     <title>Document Converter</title>
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
@@ -57,19 +58,34 @@
                             <button type="button" class="quick-format-btn" data-from="md" data-to="html">MD → HTML</button>
                             <button type="button" class="quick-format-btn" data-from="html" data-to="docx">HTML → DOCX</button>
                             <button type="button" class="quick-format-btn" data-from="md" data-to="docx">MD → DOCX</button>
+                            <button type="button" class="quick-format-btn" data-from="pdf" data-to="docx">PDF → DOCX</button>
+                            <button type="button" class="quick-format-btn" data-from="html" data-to="pdf">HTML → PDF</button>
+                            <button type="button" class="quick-format-btn" data-from="md" data-to="pdf">MD → PDF</button>
+                            <button type="button" class="quick-format-btn" data-from="docx" data-to="md">DOCX → MD</button>
+                        </div>
+                        <div class="quick-options">
+                            <h4>Quick Options:</h4>
+                            <div class="quick-option-buttons">
+                                <button type="button" class="quick-option-btn" data-option="--toc">Table of Contents</button>
+                                <button type="button" class="quick-option-btn" data-option="--standalone">Standalone</button>
+                                <button type="button" class="quick-option-btn" data-option="--self-contained">Self Contained</button>
+                                <button type="button" class="quick-option-btn" data-option="--number-sections">Number Sections</button>
+                                <button type="button" class="quick-option-btn" data-option="--pdf-engine=xelatex">XeLaTeX Engine</button>
+                            </div>
                         </div>
                     </div>
                     
                     <div class="format-container">
                         <div class="form-group">
                             <label for="file-from-format"><i class="fas fa-file-import"></i> From Format:</label>
-                            <div class="select-container">
-                                <input type="text" id="file-from-format" list="input-formats" placeholder="e.g., docx, md" required pattern="[a-zA-Z0-9_-]+" title="Format should contain only letters, numbers, underscores and hyphens">
-                                <datalist id="input-formats">
+                            <div class="select-wrapper">
+                                <select id="file-from-format" required>
+                                    <option value="" disabled selected>Select format</option>
                                     {% for format in input_formats %}
-                                    <option value="{{ format }}">
+                                    <option value="{{ format }}">{{ format }}</option>
                                     {% endfor %}
-                                </datalist>
+                                </select>
+                                <i class="fas fa-chevron-down select-arrow"></i>
                             </div>
                             <div class="recent-formats">
                                 <span class="recent-label">Recent:</span>
@@ -81,13 +97,14 @@
                         
                         <div class="form-group">
                             <label for="file-to-format"><i class="fas fa-file-export"></i> To Format:</label>
-                            <div class="select-container">
-                                <input type="text" id="file-to-format" list="output-formats" placeholder="e.g., html, pdf" required pattern="[a-zA-Z0-9_-]+" title="Format should contain only letters, numbers, underscores and hyphens">
-                                <datalist id="output-formats">
+                            <div class="select-wrapper">
+                                <select id="file-to-format" required>
+                                    <option value="" disabled selected>Select format</option>
                                     {% for format in output_formats %}
-                                    <option value="{{ format }}">
+                                    <option value="{{ format }}">{{ format }}</option>
                                     {% endfor %}
-                                </datalist>
+                                </select>
+                                <i class="fas fa-chevron-down select-arrow"></i>
                             </div>
                             <div class="recent-formats">
                                 <span class="recent-label">Recent:</span>
@@ -99,12 +116,8 @@
                     <div class="form-group">
                         <label for="file-options"><i class="fas fa-sliders-h"></i> Options (optional):</label>
                         <div class="options-container">
-                            <input type="text" id="file-options" list="common-options" placeholder="e.g., --toc --standalone">
-                            <datalist id="common-options">
-                                {% for option in common_options %}
-                                <option value="{{ option }}">
-                                {% endfor %}
-                            </datalist>
+                            <input type="text" id="file-options" placeholder="e.g., --toc --standalone">
+                            <div class="selected-options" id="file-selected-options"></div>
                             <div class="options-help">
                                 <i class="fas fa-question-circle" title="Click to view common options"></i>
                                 <div class="options-tooltip">
@@ -115,6 +128,8 @@
                                         <li><code>--self-contained</code>: Embed images in HTML</li>
                                         <li><code>--metadata=title:"My Title"</code>: Set metadata</li>
                                         <li><code>--pdf-engine=xelatex</code>: Select PDF engine</li>
+                                        <li><code>--number-sections</code>: Number sections</li>
+                                        <li><code>--highlight-style=pygments</code>: Code highlighting</li>
                                     </ul>
                                 </div>
                             </div>
@@ -136,13 +151,14 @@
                     <div class="format-container">
                         <div class="form-group">
                             <label for="text-from-format"><i class="fas fa-file-import"></i> From Format:</label>
-                            <div class="select-container">
-                                <input type="text" id="text-from-format" list="input-formats-text" placeholder="e.g., markdown" required pattern="[a-zA-Z0-9_-]+" title="Format should contain only letters, numbers, underscores and hyphens">
-                                <datalist id="input-formats-text">
+                            <div class="select-wrapper">
+                                <select id="text-from-format" required>
+                                    <option value="" disabled selected>Select format</option>
                                     {% for format in input_formats %}
-                                    <option value="{{ format }}">
+                                    <option value="{{ format }}">{{ format }}</option>
                                     {% endfor %}
-                                </datalist>
+                                </select>
+                                <i class="fas fa-chevron-down select-arrow"></i>
                             </div>
                         </div>
                         
@@ -150,13 +166,14 @@
                         
                         <div class="form-group">
                             <label for="text-to-format"><i class="fas fa-file-export"></i> To Format:</label>
-                            <div class="select-container">
-                                <input type="text" id="text-to-format" list="output-formats-text" placeholder="e.g., html" required pattern="[a-zA-Z0-9_-]+" title="Format should contain only letters, numbers, underscores and hyphens">
-                                <datalist id="output-formats-text">
+                            <div class="select-wrapper">
+                                <select id="text-to-format" required>
+                                    <option value="" disabled selected>Select format</option>
                                     {% for format in output_formats %}
-                                    <option value="{{ format }}">
+                                    <option value="{{ format }}">{{ format }}</option>
                                     {% endfor %}
-                                </datalist>
+                                </select>
+                                <i class="fas fa-chevron-down select-arrow"></i>
                             </div>
                         </div>
                     </div>
@@ -164,12 +181,8 @@
                     <div class="form-group">
                         <label for="text-options"><i class="fas fa-sliders-h"></i> Options (optional):</label>
                         <div class="options-container">
-                            <input type="text" id="text-options" list="common-options-text" placeholder="e.g., --toc --standalone">
-                            <datalist id="common-options-text">
-                                {% for option in common_options %}
-                                <option value="{{ option }}">
-                                {% endfor %}
-                            </datalist>
+                            <input type="text" id="text-options" placeholder="e.g., --toc --standalone">
+                            <div class="selected-options" id="text-selected-options"></div>
                             <div class="options-help">
                                 <i class="fas fa-question-circle" title="Click to view common options"></i>
                                 <div class="options-tooltip">
@@ -180,6 +193,8 @@
                                         <li><code>--self-contained</code>: Embed images in HTML</li>
                                         <li><code>--metadata=title:"My Title"</code>: Set metadata</li>
                                         <li><code>--pdf-engine=xelatex</code>: Select PDF engine</li>
+                                        <li><code>--number-sections</code>: Number sections</li>
+                                        <li><code>--highlight-style=pygments</code>: Code highlighting</li>
                                     </ul>
                                 </div>
                             </div>
@@ -201,13 +216,14 @@
                     <div class="format-container">
                         <div class="form-group">
                             <label for="base64-from-format"><i class="fas fa-file-import"></i> From Format:</label>
-                            <div class="select-container">
-                                <input type="text" id="base64-from-format" list="input-formats-base64" placeholder="e.g., docx, md" required pattern="[a-zA-Z0-9_-]+" title="Format should contain only letters, numbers, underscores and hyphens">
-                                <datalist id="input-formats-base64">
+                            <div class="select-wrapper">
+                                <select id="base64-from-format" required>
+                                    <option value="" disabled selected>Select format</option>
                                     {% for format in input_formats %}
-                                    <option value="{{ format }}">
+                                    <option value="{{ format }}">{{ format }}</option>
                                     {% endfor %}
-                                </datalist>
+                                </select>
+                                <i class="fas fa-chevron-down select-arrow"></i>
                             </div>
                         </div>
                         
@@ -215,13 +231,14 @@
                         
                         <div class="form-group">
                             <label for="base64-to-format"><i class="fas fa-file-export"></i> To Format:</label>
-                            <div class="select-container">
-                                <input type="text" id="base64-to-format" list="output-formats-base64" placeholder="e.g., html, pdf" required pattern="[a-zA-Z0-9_-]+" title="Format should contain only letters, numbers, underscores and hyphens">
-                                <datalist id="output-formats-base64">
+                            <div class="select-wrapper">
+                                <select id="base64-to-format" required>
+                                    <option value="" disabled selected>Select format</option>
                                     {% for format in output_formats %}
-                                    <option value="{{ format }}">
+                                    <option value="{{ format }}">{{ format }}</option>
                                     {% endfor %}
-                                </datalist>
+                                </select>
+                                <i class="fas fa-chevron-down select-arrow"></i>
                             </div>
                         </div>
                     </div>
@@ -229,12 +246,8 @@
                     <div class="form-group">
                         <label for="base64-options"><i class="fas fa-sliders-h"></i> Options (optional):</label>
                         <div class="options-container">
-                            <input type="text" id="base64-options" list="common-options-base64" placeholder="e.g., --toc --standalone">
-                            <datalist id="common-options-base64">
-                                {% for option in common_options %}
-                                <option value="{{ option }}">
-                                {% endfor %}
-                            </datalist>
+                            <input type="text" id="base64-options" placeholder="e.g., --toc --standalone">
+                            <div class="selected-options" id="base64-selected-options"></div>
                             <div class="options-help">
                                 <i class="fas fa-question-circle" title="Click to view common options"></i>
                                 <div class="options-tooltip">
@@ -245,6 +258,8 @@
                                         <li><code>--self-contained</code>: Embed images in HTML</li>
                                         <li><code>--metadata=title:"My Title"</code>: Set metadata</li>
                                         <li><code>--pdf-engine=xelatex</code>: Select PDF engine</li>
+                                        <li><code>--number-sections</code>: Number sections</li>
+                                        <li><code>--highlight-style=pygments</code>: Code highlighting</li>
                                     </ul>
                                 </div>
                             </div>
@@ -267,7 +282,10 @@
             <div class="history-list" id="history-list">
                 <!-- History items will be inserted here by JavaScript -->
             </div>
-            <button id="clear-history" class="btn-small" aria-label="Clear conversion history"><i class="fas fa-trash"></i> Clear History</button>
+            <div class="history-actions">
+                <button id="clear-history" class="btn-small" aria-label="Clear conversion history"><i class="fas fa-trash"></i> Clear History</button>
+                <button id="download-all-history" class="btn-small" aria-label="Download all history files as ZIP"><i class="fas fa-download"></i> Download All</button>
+            </div>
         </div>
 
         <footer>
@@ -315,6 +333,28 @@
     <button class="keyboard-shortcuts-btn" id="show-shortcuts-btn" title="Show keyboard shortcuts">
         <i class="fas fa-keyboard"></i>
     </button>
+
+    <!-- Template for history item -->
+    <template id="history-item-template">
+        <div class="history-item">
+            <div class="history-item-header">
+                <div class="history-item-title">
+                    <i class="fas fa-file"></i>
+                    <span class="filename"></span>
+                </div>
+                <div class="history-item-actions">
+                    <button class="history-download-btn" title="Download file"><i class="fas fa-download"></i></button>
+                    <button class="history-delete-btn" title="Remove from history"><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+            <div class="history-item-details">
+                <span class="format-badge from-format"></span>
+                <i class="fas fa-arrow-right"></i>
+                <span class="format-badge to-format"></span>
+                <span class="history-timestamp"></span>
+            </div>
+        </div>
+    </template>
 
     <script src="/static/js/script.js"></script>
 </body>

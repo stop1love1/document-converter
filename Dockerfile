@@ -26,4 +26,4 @@ RUN mkdir -p uploads
 EXPOSE 5000
 
 # Chạy Flask app
-CMD ["python", "server.py"]
+CMD ["python", "app.py"]
