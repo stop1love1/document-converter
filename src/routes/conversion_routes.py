@@ -3,7 +3,7 @@ from flasgger import swag_from
 from werkzeug.utils import secure_filename
 import os
 from src.config.config import allowed_file, UPLOAD_FOLDER
-from src.utils.conversion import process_file_conversion, process_text_conversion, process_base64_conversion
+from src.utils.conversion import process_file_conversion, process_text_conversion, process_base64_conversion, process_image_conversion
 
 def register_conversion_routes(app):
     """Register conversion-related routes"""
@@ -208,4 +208,168 @@ def register_conversion_routes(app):
                 
         except Exception as e:
             app.logger.error(f"Conversion error: {str(e)}")
+            return jsonify({'error': str(e)}), 500
+            
+    @app.route('/convert/image', methods=['POST'])
+    @swag_from({
+        'tags': ['Conversion'],
+        'summary': 'Convert images between different formats',
+        'description': 'API to convert images using ImageMagick',
+        'consumes': [
+            'multipart/form-data'
+        ],
+        'produces': [
+            'application/json'
+        ],
+        'parameters': [
+            {
+                'name': 'image',
+                'in': 'formData',
+                'type': 'file',
+                'required': True,
+                'description': 'Image file to convert',
+            },
+            {
+                'name': 'to_format',
+                'in': 'formData',
+                'type': 'string',
+                'required': True,
+                'description': 'Target format (e.g., jpg, png, webp, gif)',
+                'enum': ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'tiff', 'ico', 'svg']
+            },
+            {
+                'name': 'quality',
+                'in': 'formData',
+                'type': 'integer',
+                'required': False,
+                'description': 'Image quality (1-100)',
+                'default': 90
+            },
+            {
+                'name': 'resize',
+                'in': 'formData',
+                'type': 'string',
+                'required': False,
+                'description': 'Resize parameter (e.g., 800x600, 50%)'
+            },
+            {
+                'name': 'options',
+                'in': 'formData',
+                'type': 'string',
+                'required': False,
+                'description': 'Additional ImageMagick options'
+            }
+        ],
+        'responses': {
+            '200': {
+                'description': 'Successful conversion',
+                'schema': {
+                    'type': 'object',
+                    'properties': {
+                        'success': {
+                            'type': 'boolean',
+                            'description': 'Operation status'
+                        },
+                        'downloadUrl': {
+                            'type': 'string',
+                            'description': 'URL to download the converted image'
+                        },
+                        'message': {
+                            'type': 'string',
+                            'description': 'Success message'
+                        }
+                    }
+                }
+            },
+            '400': {
+                'description': 'Bad request',
+                'schema': {
+                    'type': 'object',
+                    'properties': {
+                        'error': {
+                            'type': 'string',
+                            'description': 'Error message'
+                        }
+                    }
+                }
+            },
+            '500': {
+                'description': 'Server error',
+                'schema': {
+                    'type': 'object',
+                    'properties': {
+                        'error': {
+                            'type': 'string',
+                            'description': 'Error message'
+                        }
+                    }
+                }
+            }
+        }
+    })
+    def convert_image():
+        try:
+            # Check if image file is in the request
+            if 'image' not in request.files:
+                return jsonify({'error': 'No image file part'}), 400
+                
+            image = request.files['image']
+            if image.filename == '':
+                return jsonify({'error': 'No selected image'}), 400
+                
+            # Check image extension
+            allowed_extensions = [
+                'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'tiff', 'svg', 'ico',
+                'heic', 'heif', 'avif', 'pdf', 'psd', 'ai', 'eps', 'raw', 'cr2', 'nef',
+                'arw', 'dng', 'orf', 'rw2', 'rwl', 'pcx', 'tga', 'xcf', 'pnm', 'pbm',
+                'pgm', 'ppm', 'xpm', 'xbm', 'jxr', 'wdp', 'hdp', 'jp2', 'j2k', 'jpf',
+                'jpx', 'jpm', 'djvu', 'jxl', 'wmf', 'emf'
+            ]
+            ext = image.filename.rsplit('.', 1)[1].lower() if '.' in image.filename else ''
+            if ext not in allowed_extensions:
+                return jsonify({'error': f'Image format not supported. Allowed formats: {", ".join(allowed_extensions)}'}), 400
+                
+            # Get target format
+            to_format = request.form.get('to_format')
+            if not to_format:
+                return jsonify({'error': 'Target format is required'}), 400
+                
+            # Validate target format
+            if to_format.lower() not in allowed_extensions:
+                return jsonify({'error': f'Target format not supported. Allowed formats: {", ".join(allowed_extensions)}'}), 400
+                
+            # Get optional parameters
+            quality = request.form.get('quality', 90)
+            try:
+                quality = int(quality)
+                if quality < 1 or quality > 100:
+                    return jsonify({'error': 'Quality must be between 1 and 100'}), 400
+            except ValueError:
+                return jsonify({'error': 'Quality must be a number between 1 and 100'}), 400
+                
+            resize = request.form.get('resize', None)
+            options = request.form.get('options', None)
+                
+            # Save uploaded image
+            filename = secure_filename(image.filename)
+            filepath = os.path.join(UPLOAD_FOLDER, filename)
+            image.save(filepath)
+                
+            try:
+                # Process image conversion
+                result = process_image_conversion(filepath, to_format, quality, resize, options)
+                
+                # Clean up uploaded file
+                if os.path.exists(filepath):
+                    os.remove(filepath)
+                    
+                return jsonify(result)
+            except Exception as e:
+                # Clean up uploaded file in case of error
+                if os.path.exists(filepath):
+                    os.remove(filepath)
+                raise e
+                
+        except Exception as e:
+            app.logger.error(f"Image conversion error: {str(e)}")
             return jsonify({'error': str(e)}), 500 

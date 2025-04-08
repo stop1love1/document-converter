@@ -36,6 +36,7 @@
             <button class="tab-btn active" data-tab="file-tab"><i class="fas fa-file-upload"></i> Upload File</button>
             <button class="tab-btn" data-tab="text-tab"><i class="fas fa-align-left"></i> Convert Text</button>
             <button class="tab-btn" data-tab="base64-tab"><i class="fas fa-code"></i> Base64 Input</button>
+            <button class="tab-btn" data-tab="image-tab"><i class="fas fa-image"></i> Convert Image</button>
         </div>
 
         <div class="tab-content">
@@ -163,6 +164,105 @@
                         </div>
                     </div>
                     <div id="file-result-content" class="result-content"></div>
+                </div>
+            </div>
+
+            <!-- Image Conversion Tab -->
+            <div id="image-tab" class="tab-pane">
+                <form id="image-form" enctype="multipart/form-data">
+                    <div class="file-upload-container">
+                        <label for="image-input" class="file-upload-label">
+                            <i class="fas fa-image"></i>
+                            <span>Choose an image or drag it here</span>
+                        </label>
+                        <input type="file" id="image-input" class="file-upload-input" accept="image/*" required>
+                        <div id="image-name" class="file-name"></div>
+                        <button type="button" id="preview-image-btn" class="preview-btn" style="display: none;">
+                            <i class="fas fa-eye"></i> Preview Image
+                        </button>
+                    </div>
+                    
+                    <div class="quick-formats">
+                        <h4>Quick Convert:</h4>
+                        <div class="quick-format-buttons">
+                            <button type="button" class="quick-format-btn" data-to="jpg">Convert to JPG</button>
+                            <button type="button" class="quick-format-btn" data-to="png">Convert to PNG</button>
+                            <button type="button" class="quick-format-btn" data-to="webp">Convert to WebP</button>
+                            <button type="button" class="quick-format-btn" data-to="avif">Convert to AVIF</button>
+                            <button type="button" class="quick-format-btn" data-to="gif">Convert to GIF</button>
+                            <button type="button" class="quick-format-btn" data-to="ico">Convert to ICO</button>
+                            <button type="button" class="quick-format-btn" data-to="tiff">Convert to TIFF</button>
+                            <button type="button" class="quick-format-btn" data-to="heic">Convert to HEIC</button>
+                            <button type="button" class="quick-format-btn" data-to="pdf">Convert to PDF</button>
+                            <button type="button" class="quick-format-btn" data-to="svg">Convert to SVG</button>
+                            <button type="button" class="quick-format-btn" data-to="wmf">Convert to WMF</button>
+                        </div>
+                    </div>
+                    
+                    <div class="format-container">
+                        <div class="form-group">
+                            <label for="image-to-format"><i class="fas fa-file-export"></i> To Format:</label>
+                            <div class="select-wrapper">
+                                <select id="image-to-format" required>
+                                    <option value="" disabled selected>Select format</option>
+                                    <option value="jpg">jpg</option>
+                                    <option value="jpeg">jpeg</option>
+                                    <option value="png">png</option>
+                                    <option value="gif">gif</option>
+                                    <option value="webp">webp</option>
+                                    <option value="bmp">bmp</option>
+                                    <option value="tiff">tiff</option>
+                                    <option value="svg">svg</option>
+                                    <option value="ico">ico</option>
+                                    <option value="heic">heic</option>
+                                    <option value="heif">heif</option>
+                                    <option value="avif">avif</option>
+                                    <option value="pdf">pdf</option>
+                                    <option value="psd">psd</option>
+                                    <option value="ai">ai</option>
+                                    <option value="eps">eps</option>
+                                    <option value="jp2">jp2</option>
+                                    <option value="tga">tga</option>
+                                    <option value="xcf">xcf</option>
+                                    <option value="jxl">jxl</option>
+                                    <option value="wmf">wmf</option>
+                                    <option value="emf">emf</option>
+                                </select>
+                                <i class="fas fa-chevron-down select-arrow"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="options-container">
+                        <div class="quality-resize-options">
+                            <div class="form-group">
+                                <label for="image-quality"><i class="fas fa-sliders-h"></i> Quality (1-100):</label>
+                                <input type="number" id="image-quality" name="quality" min="1" max="100" value="100" class="option-input">
+                            </div>
+                            <div class="form-group">
+                                <label for="image-resize"><i class="fas fa-expand"></i> Resize:</label>
+                                <input type="text" id="image-resize" name="resize" placeholder="e.g., 800x600" class="option-input">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="image-options"><i class="fas fa-cogs"></i> Additional Options:</label>
+                            <input type="text" id="image-options" name="options" placeholder="e.g., -blur 0x1" class="option-input">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn"><i class="fas fa-sync-alt"></i> Convert</button>
+                </form>
+                <div id="image-result-container" class="result-container" style="display: none;">
+                    <div class="result-header">
+                        <div class="result-title">
+                            <i class="fas fa-check-circle"></i> Image Conversion Result
+                        </div>
+                        <div class="result-actions">
+                            <button id="image-download-btn" class="btn-small"><i class="fas fa-download"></i> Download</button>
+                        </div>
+                    </div>
+                    <div id="image-result-content" class="result-content"></div>
                 </div>
             </div>
 

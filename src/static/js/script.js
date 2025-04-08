@@ -159,151 +159,157 @@ document.addEventListener("DOMContentLoaded", function () {
 
 // Initialize file input handling
 function initFileInput() {
-    const fileInput = document.getElementById('file-input');
-    const fileLabel = document.querySelector('.file-upload-label');
-    const fileName = document.getElementById('file-name');
-    const fileContainer = document.querySelector('.file-upload-container');
-    const previewBtn = document.getElementById('preview-file-btn');
+    const fileDropZones = document.querySelectorAll('.file-drop-zone');
     
-    if (!fileInput) {
-        console.error("File input element not found");
-        return;
-    }
-    
-    console.log("File input elements:", {
-        input: fileInput, 
-        label: fileLabel, 
-        nameElement: fileName, 
-        container: fileContainer
-    });
-    
-    // Handle file selection
-    fileInput.addEventListener('change', function(e) {
-        console.log("File input change event triggered", this.files);
+    fileDropZones.forEach(dropZone => {
+        const fileInput = dropZone.querySelector('input[type="file"]');
+        const fileLabel = dropZone.querySelector('.custom-file-label');
+        const previewBtn = dropZone.querySelector('.preview-btn');
         
-        if (this.files && this.files.length > 0) {
-            const file = this.files[0];
-            console.log("Selected file:", file.name);
-            
-            // Display file name
-            if (fileName) {
-                fileName.textContent = file.name;
-                fileName.style.display = 'block';
+        if (!fileInput || !fileLabel) return;
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 
-                if (fileContainer) {
-                    fileContainer.classList.add('has-file');
-                    console.log("Added has-file class to container");
-                }
-            } else {
-                console.error("File name element not found");
-            }
-            
-            // Show preview button for previewable file types
-            if (previewBtn && isFilePreviewable(file.name)) {
-                previewBtn.style.display = 'inline-flex';
-            } else if (previewBtn) {
-                previewBtn.style.display = 'none';
-            }
-            
-            // Auto-select format based on file extension if possible
-            const extension = file.name.split('.').pop().toLowerCase();
-            const fromFormatSelect = document.getElementById('file-from-format');
-            if (fromFormatSelect) {
-                for (let i = 0; i < fromFormatSelect.options.length; i++) {
-                    if (fromFormatSelect.options[i].value.toLowerCase() === extension) {
-                        fromFormatSelect.selectedIndex = i;
-                        break;
+                if (eventName === 'dragenter' || eventName === 'dragover') {
+                    dropZone.classList.add('drag-over');
+                } else {
+                    dropZone.classList.remove('drag-over');
+                    
+                    if (eventName === 'drop') {
+                        const dt = e.dataTransfer;
+                        fileInput.files = dt.files;
+                        
+                        const fileEvent = new Event('change', { bubbles: true });
+                        fileInput.dispatchEvent(fileEvent);
                     }
                 }
-            }
-            
-            // Add visual indication that file is selected
-            if (fileLabel) {
-                const span = fileLabel.querySelector('span');
-                if (span) {
-                    span.textContent = "File selected";
-                }
-            }
-        } else {
-            // Reset when no file is selected
-            if (fileName) {
-                fileName.textContent = '';
-                fileName.style.display = 'none';
-            }
-            
-            if (fileContainer) {
-                fileContainer.classList.remove('has-file');
-            }
-            
-            if (previewBtn) {
-                previewBtn.style.display = 'none';
-            }
-            
-            // Reset label text
-            if (fileLabel) {
-                const span = fileLabel.querySelector('span');
-                if (span) {
-                    span.textContent = "Choose a file or drag it here";
-                }
-            }
-        }
-    });
-    
-    // Directly click the input when the label is clicked
-    if (fileLabel) {
+            });
+        });
+        
         fileLabel.onclick = function(e) {
-            // Do not trigger if clicking on child elements that already have their own handlers
-            if (e.target === fileLabel) {
-                console.log("File label direct click");
-                e.preventDefault();
+            if (e.target === this) {
                 fileInput.click();
             }
         };
+        
+        fileInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                const fileName = this.files[0].name;
+                const fileNameElement = dropZone.querySelector('.file-name');
+                
+                if (fileNameElement) {
+                    fileNameElement.textContent = fileName;
+                    fileNameElement.style.display = 'inline-block';
+                } else {
+                    const nameSpan = document.createElement('span');
+                    nameSpan.className = 'file-name';
+                    nameSpan.textContent = fileName;
+                    fileLabel.appendChild(nameSpan);
+                }
+                
+                fileLabel.classList.add('file-selected');
+                dropZone.classList.add('has-file');
+                
+                if (previewBtn) {
+                    if (isFilePreviewable(fileName)) {
+                        previewBtn.classList.remove('d-none');
+                        previewBtn.style.display = 'inline-flex';
+                    } else {
+                        previewBtn.classList.add('d-none');
+                        previewBtn.style.display = 'none';
+                    }
+                }
+            } else {
+                const fileNameElement = dropZone.querySelector('.file-name');
+                if (fileNameElement) {
+                    fileNameElement.textContent = '';
+                    fileNameElement.style.display = 'none';
+                }
+                
+                fileLabel.classList.remove('file-selected');
+                dropZone.classList.remove('has-file');
+                
+                if (previewBtn) {
+                    previewBtn.classList.add('d-none');
+                    previewBtn.style.display = 'none';
+                }
+            }
+        });
+    });
+    
+    const imageInput = document.getElementById('image-input');
+    const imageDropZone = document.querySelector('#image-tab .file-upload-container');
+    const imageLabel = imageDropZone ? imageDropZone.querySelector('.file-upload-label') : null;
+    const imagePreviewBtn = document.getElementById('preview-image-btn');
+    
+    if (imageInput && imageLabel) {
+        imageLabel.onclick = function(e) {
+            if (e.target === imageLabel || e.target === imageLabel.querySelector('i') || e.target === imageLabel.querySelector('span')) {
+                e.preventDefault();
+                imageInput.click();
+            }
+        };
+        
+        imageInput.addEventListener('change', function() {
+            if (this.files && this.files.length > 0) {
+                const file = this.files[0];
+                const imageName = document.getElementById('image-name');
+                
+                if (imageName) {
+                    imageName.textContent = file.name;
+                    imageName.style.display = 'block';
+                    
+                    imageDropZone.classList.add('has-file');
+                }
+                
+                if (imagePreviewBtn) {
+                    imagePreviewBtn.style.display = 'inline-flex';
+                    
+                    imagePreviewBtn.onclick = function() {
+                        const fileURL = URL.createObjectURL(file);
+                        showImagePreview(fileURL);
+                    };
+                }
+                
+                const toFormatSelect = document.getElementById('image-to-format');
+                if (toFormatSelect) {
+                    const extension = file.name.split('.').pop().toLowerCase();
+                    showToast(`Current format is: ${extension.toUpperCase()}`, 'info');
+                }
+                
+                if (imageLabel) {
+                    const span = imageLabel.querySelector('span');
+                    if (span) {
+                        span.textContent = "Image selected";
+                    }
+                }
+            }
+        });
     }
     
-    // Handle drag and drop if container exists
-    if (fileContainer) {
+    if (imageDropZone) {
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            fileContainer.addEventListener(eventName, function(e) {
+            imageDropZone.addEventListener(eventName, function(e) {
                 e.preventDefault();
                 e.stopPropagation();
+                
+                if (eventName === 'dragenter' || eventName === 'dragover') {
+                    this.classList.add('dragover');
+                } else {
+                    this.classList.remove('dragover');
+                    
+                    if (eventName === 'drop' && e.dataTransfer.files.length) {
+                        imageInput.files = e.dataTransfer.files;
+                        const event = new Event('change', { bubbles: true });
+                        imageInput.dispatchEvent(event);
+                    }
+                }
             }, false);
-        });
-        
-        ['dragenter', 'dragover'].forEach(eventName => {
-            fileContainer.addEventListener(eventName, function() {
-                this.classList.add('dragover');
-            }, false);
-        });
-        
-        ['dragleave', 'drop'].forEach(eventName => {
-            fileContainer.addEventListener(eventName, function() {
-                this.classList.remove('dragover');
-            }, false);
-        });
-        
-        fileContainer.addEventListener('drop', function(e) {
-            if (e.dataTransfer.files.length) {
-                fileInput.files = e.dataTransfer.files;
-                // Trigger change event
-                const event = new Event('change', { bubbles: true });
-                fileInput.dispatchEvent(event);
-            }
-        }, false);
-    }
-    
-    // Handle preview button click
-    if (previewBtn) {
-        previewBtn.addEventListener('click', function() {
-            if (fileInput.files && fileInput.files.length > 0) {
-                const file = fileInput.files[0];
-                const fileURL = URL.createObjectURL(file);
-                showFilePreview(file, fileURL);
-            }
         });
     }
-    
-    console.log("File input initialized");
 }
 
 // Check if file can be previewed
@@ -311,8 +317,8 @@ function isFilePreviewable(filename) {
     if (!filename) return false;
     
     const previewableExtensions = [
-        'jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg',
-        'pdf', 'txt', 'md', 'html', 'htm', 'csv', 'xml', 'json'
+        'pdf', 'txt', 'jpg', 'jpeg', 'png', 'gif', 'svg', 
+        'md', 'html', 'htm', 'css', 'js'
     ];
     
     const extension = filename.split('.').pop().toLowerCase();
@@ -320,76 +326,94 @@ function isFilePreviewable(filename) {
 }
 
 // Show file preview in modal
-function showFilePreview(file, fileURL) {
-    if (!file || !fileURL) {
-        console.error("Invalid file or URL for preview");
-        return;
+function showFilePreview(filePath, fileType) {
+    const modal = document.getElementById('previewModal');
+    const modalContent = document.getElementById('previewModalContent');
+    
+    if (!modal || !modalContent) return;
+    
+    modalContent.innerHTML = '';
+    
+    if (fileType === 'image' || /\.(jpg|jpeg|png|gif|svg)$/i.test(filePath)) {
+        const img = document.createElement('img');
+        img.src = filePath;
+        img.className = 'img-fluid preview-image';
+        img.style.maxWidth = '100%';
+        img.style.maxHeight = '80vh';
+        img.style.display = 'block';
+        img.style.margin = '0 auto';
+        
+        modalContent.appendChild(img);
+    } else if (/\.pdf$/i.test(filePath)) {
+        const iframe = document.createElement('iframe');
+        iframe.src = filePath;
+        iframe.style.width = '100%';
+        iframe.style.height = '80vh';
+        iframe.style.border = 'none';
+        
+        modalContent.appendChild(iframe);
+    } else if (/\.(txt|md|html|htm|css|js)$/i.test(filePath)) {
+        fetch(filePath)
+            .then(response => response.text())
+            .then(content => {
+                const pre = document.createElement('pre');
+                pre.style.maxHeight = '80vh';
+                pre.style.overflow = 'auto';
+                pre.style.padding = '15px';
+                pre.style.whiteSpace = 'pre-wrap';
+                pre.textContent = content;
+                
+                modalContent.appendChild(pre);
+            })
+            .catch(error => {
+                modalContent.textContent = `Error loading preview: ${error.message}`;
+            });
+    } else {
+        modalContent.textContent = 'Preview not available for this file type';
     }
     
+    const previewModal = new bootstrap.Modal(modal);
+    previewModal.show();
+}
+
+// Show image preview in modal
+function showImagePreview(filePath) {
     const modal = document.getElementById('file-preview-modal');
     const contentContainer = document.getElementById('file-preview-content');
-    const modalTitle = modal?.querySelector('.modal-title');
     
     if (!modal || !contentContainer) {
-        console.error("File preview modal elements not found");
+        console.error("Image preview modal elements not found");
         return;
     }
     
-    // Set modal title
+    const modalTitle = modal.querySelector('.modal-title');
     if (modalTitle) {
-        modalTitle.textContent = `Preview: ${file.name}`;
+        modalTitle.textContent = 'Image Preview';
     }
     
-    // Clear content container
     contentContainer.innerHTML = '';
     
-    // Determine content type
-    const extension = file.name.split('.').pop().toLowerCase();
-    const isImage = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'].includes(extension);
-    const isPDF = extension === 'pdf';
-    const isText = ['txt', 'md', 'html', 'htm', 'csv', 'xml', 'json'].includes(extension);
+    const img = document.createElement('img');
+    img.src = filePath;
+    img.className = 'img-fluid preview-image';
+    img.style.maxWidth = '100%';
+    img.style.maxHeight = '80vh';
+    img.style.display = 'block';
+    img.style.margin = '0 auto';
     
-    if (isImage) {
-        // Image preview
-        const img = document.createElement('img');
-        img.src = fileURL;
-        img.style.maxWidth = '100%';
-        img.style.maxHeight = '60vh';
-        img.alt = file.name;
-        contentContainer.appendChild(img);
-    } else if (isPDF) {
-        // PDF preview
-        const iframe = document.createElement('iframe');
-        iframe.src = fileURL;
-        iframe.style.width = '100%';
-        iframe.style.height = '60vh';
-        iframe.title = file.name;
-        contentContainer.appendChild(iframe);
-    } else if (isText) {
-        // Text preview - read file content
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const pre = document.createElement('pre');
-            pre.className = 'text-preview';
-            pre.textContent = e.target.result;
-            contentContainer.appendChild(pre);
-        };
-        reader.onerror = function() {
-            contentContainer.innerHTML = `<div class="preview-error">Error reading file content</div>`;
-        };
-        reader.readAsText(file);
-    } else {
-        // Unsupported preview
-        contentContainer.innerHTML = `
-            <div class="preview-unsupported">
-                <i class="fas fa-file"></i>
-                <p>Preview not available for this file type</p>
-            </div>
-        `;
-    }
+    contentContainer.appendChild(img);
     
-    // Show modal
     modal.style.display = 'flex';
+}
+
+// Format file size in human-readable format
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    
+    return parseFloat((bytes / Math.pow(1024, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
 // Initialize custom options
@@ -751,6 +775,35 @@ function setupFormSubmission() {
     const fileForm = document.getElementById('file-form');
     const textForm = document.getElementById('text-form');
     const base64Form = document.getElementById('base64-form');
+    const imageForm = document.getElementById('image-form');
+    
+    // Quick format buttons for image
+    const imageQuickFormatBtns = document.querySelectorAll('#image-tab .quick-format-btn');
+    imageQuickFormatBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const toFormat = this.getAttribute('data-to');
+            const formatSelect = document.getElementById('image-to-format');
+            
+            if (toFormat && formatSelect) {
+                for (let i = 0; i < formatSelect.options.length; i++) {
+                    if (formatSelect.options[i].value === toFormat) {
+                        formatSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+            
+            // Tự động submit form nếu đã chọn ảnh
+            const imageInput = document.getElementById('image-input');
+            if (imageInput && imageInput.files.length > 0) {
+                imageForm.requestSubmit();
+            } else {
+                showToast('Please select an image first', 'warning');
+                // Focus vào input để user chọn ảnh
+                imageInput.click();
+            }
+        });
+    });
     
     // File conversion
     if (fileForm) {
@@ -787,7 +840,7 @@ function setupFormSubmission() {
                 formData.append('options', options);
             }
             
-            fetch('/convert', {  // Changed from /api/convert/file to /convert
+            fetch('/convert', {
                 method: 'POST',
                 body: formData
             })
@@ -825,6 +878,93 @@ function setupFormSubmission() {
                 hideProgressBar();
                 console.error('Error:', error);
                 showToast('Error converting file: ' + error.message, 'error');
+            });
+        });
+    }
+    
+    // Image conversion
+    if (imageForm) {
+        imageForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            console.log("Image form submitted");
+            
+            const imageInput = document.getElementById('image-input');
+            if (!imageInput.files.length) {
+                showToast('Please select an image', 'error');
+                return;
+            }
+            
+            const file = imageInput.files[0];
+            
+            const toFormat = document.getElementById('image-to-format').value;
+            if (!toFormat) {
+                showToast('Please select a target format', 'error');
+                return;
+            }
+            
+            showProgressBar();
+            
+            // Create FormData to send image
+            const formData = new FormData();
+            formData.append('image', file);
+            formData.append('to_format', toFormat);
+            
+            // Get quality if provided
+            const quality = document.getElementById('image-quality').value;
+            if (quality) {
+                formData.append('quality', quality);
+            }
+            
+            // Get resize if provided
+            const resize = document.getElementById('image-resize').value;
+            if (resize) {
+                formData.append('resize', resize);
+            }
+            
+            // Get additional options if provided
+            const options = document.getElementById('image-options').value;
+            if (options) {
+                formData.append('options', options);
+            }
+            
+            fetch('/convert/image', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Server responded with ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                hideProgressBar();
+                console.log("API response:", data);
+                
+                if (data.error) {
+                    showToast(data.error, 'error');
+                    return;
+                }
+                
+                // Save to history
+                const historyItem = {
+                    name: file.name,
+                    from: file.name.split('.').pop() || 'unknown',
+                    to: toFormat,
+                    date: new Date().toISOString(),
+                    isFile: true,
+                    downloadUrl: data.downloadUrl || data.download_url
+                };
+                
+                addToHistory(historyItem);
+                
+                // Display result
+                displayImageResult(data.downloadUrl || data.download_url, toFormat);
+            })
+            .catch(error => {
+                hideProgressBar();
+                console.error('Error:', error);
+                showToast('Error converting image: ' + error.message, 'error');
             });
         });
     }
@@ -1363,4 +1503,61 @@ function initKeyboardShortcuts() {
             }
         }
     });
+}
+
+// Display image result
+function displayImageResult(downloadUrl, format) {
+    const resultContainer = document.getElementById('image-result-container');
+    const resultContent = document.getElementById('image-result-content');
+    
+    if (!resultContainer || !resultContent) {
+        console.error("Image result elements not found");
+        return;
+    }
+    
+    resultContent.innerHTML = '';
+    
+    if (downloadUrl) {
+        // Display image preview
+        const img = document.createElement('img');
+        img.src = downloadUrl;
+        img.style.maxWidth = '100%';
+        img.style.maxHeight = '400px';
+        img.alt = 'Converted image';
+        img.className = 'converted-image-preview';
+        resultContent.appendChild(img);
+        
+        // Add conversion details
+        const details = document.createElement('div');
+        details.className = 'conversion-details';
+        details.innerHTML = `
+            <div class="success-message">
+                <i class="fas fa-check-circle"></i> Image converted successfully to ${format}
+            </div>
+            <p>Your image is ready to download.</p>
+        `;
+        resultContent.appendChild(details);
+        
+        // Update download button
+        const downloadBtn = document.getElementById('image-download-btn');
+        if (downloadBtn) {
+            // Remove previous listeners
+            const newDownloadBtn = downloadBtn.cloneNode(true);
+            if (downloadBtn.parentNode) {
+                downloadBtn.parentNode.replaceChild(newDownloadBtn, downloadBtn);
+            }
+            
+            newDownloadBtn.addEventListener('click', function() {
+                window.location.href = downloadUrl;
+            });
+        }
+    } else {
+        resultContent.innerHTML = `
+            <div class="error-message">
+                <i class="fas fa-exclamation-circle"></i> No download URL provided
+            </div>
+        `;
+    }
+    
+    resultContainer.style.display = 'block';
 }
