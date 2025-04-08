@@ -1,68 +1,95 @@
 # Document Converter
 
-A simple web-based document conversion tool built with Flask and Pandoc.
+A powerful web application for converting between various document, image, and text formats.
 
-![Document Converter Screenshot](docs/screenshot.png)
+![Document Converter](docs/screenshot.png)
 
-## Demo
+## Features
 
-Try the live demo: [Document Converter Demo](https://document-converter.edusoft.vn/)
-
-## Key Features
-
-- Convert files, text, or base64 content between multiple formats
-- Support for custom Pandoc options
+- **File Conversion**: Convert between document formats (DOCX, PDF, MD, HTML, etc.)
+- **Image Conversion**: Convert between image formats with quality adjustments
+- **Text Conversion**: Direct conversion of text content
+- **Base64 Conversion**: Convert Base64 data to target formats
+- **Advanced Options**: Customize conversion with various options
+- **Conversion History**: Save and download conversion history
+- **Dark/Light Mode**: User-friendly interface with togglable themes
+- **Drag & Drop**: Support for dragging and dropping files
+- **Preview**: Preview files and results before downloading
+- **Keyboard Shortcuts**: Enhance user experience
 
 ## Requirements
 
-- Python 3.6+
-- Flask 2.0.1
-- Werkzeug 2.0.1
-- Flasgger 0.9.5
-- Pandoc (external dependency)
+- Python 3.8+
+- Flask
+- Pandoc
+- ImageMagick
+- Other Python libraries listed in `requirements.txt`
 
-## Quick Start
+## Installation
 
-1. Install Pandoc from [pandoc.org](https://pandoc.org/installing.html)
-
-2. Install Python dependencies:
+1. Clone repository:
 ```bash
-python -m pip install flask==2.0.1 werkzeug==2.0.1 flasgger==0.9.5 flask-cors==3.0.10 gunicorn==20.1.0
+git clone https://github.com/stop1love1/document-converter.git
+cd document-converter
 ```
 
-3. Run the application:
+2. Create and activate virtual environment:
 ```bash
-# Windows
-run.bat
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
 
-# Linux/Mac
+3. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+4. Install Pandoc and ImageMagick (if not already installed):
+   - Pandoc: [https://pandoc.org/installing.html](https://pandoc.org/installing.html)
+   - ImageMagick: [https://imagemagick.org/script/download.php](https://imagemagick.org/script/download.php)
+
+## Running the App
+
+1. Start the Flask application:
+```bash
 python app.py
 ```
 
-4. Access at http://localhost:5000
+2. Open your browser and go to:
+```
+http://localhost:5000
+```
 
 ## Usage
 
-1. Choose conversion method (File/Text/Base64)
-2. Set source and target formats
-3. Add optional Pandoc parameters
-4. Click Convert
+- **File Conversion**: Upload file → Select formats → Add options → Convert
+- **Image Conversion**: Upload image → Select target format → Adjust quality → Convert
+- **Text Conversion**: Enter text → Select formats → Convert
+- **Base64 Conversion**: Enter Base64 data → Select formats → Convert
 
-## API Documentation
+## Keyboard Shortcuts
 
-Access the Swagger UI at: http://localhost:5000/api/docs/
+- **Alt + F**: File tab
+- **Alt + T**: Text tab
+- **Alt + B**: Base64 tab
+- **Alt + C**: Activate conversion
+- **Alt + K**: Show/hide shortcuts
+- **Alt + D**: Toggle dark/light mode
 
-### Main Endpoints
+## API
 
-- `POST /convert`: Convert documents
-- `GET /download/{filename}`: Download converted files
-- `GET /api/formats`: Get supported formats
+API documentation available at `/api/docs/`
+
+## Technologies
+
+- **Backend**: Python, Flask
+- **Frontend**: HTML, CSS, JavaScript
+- **Conversion Tools**: Pandoc, ImageMagick
 
 ## License
 
-MIT License
+MIT License - see [LICENSE](LICENSE) for details.
 
-## Credits
+## Contact
 
-- Powered by [Pandoc](https://pandoc.org/)
-- Created by stop1love1
+GitHub: [https://github.com/stop1love1/document-converter](https://github.com/stop1love1/document-converter)
