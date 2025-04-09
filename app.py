@@ -1,15 +1,32 @@
-from flask import Flask, request, jsonify, render_template, redirect, url_for
-import datetime
-from src.config.config import UPLOAD_FOLDER, PANDOC_INPUT_FORMATS, PANDOC_OUTPUT_FORMATS
-from src.config.swagger import setup_swagger
-from src.routes.main_routes import register_main_routes
-from src.routes.api_routes import register_api_routes
-from src.routes.conversion_routes import register_conversion_routes
-from src.utils.conversion import process_file_conversion, convert_document
-from src.utils.history import add_to_history
-import base64
-import tempfile
 import os
+import sys
+import datetime
+
+# Add the current directory to the Python path
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+
+# Try to import from src directly
+try:
+    from flask import Flask, request, jsonify, render_template, redirect, url_for
+    from src.config.config import UPLOAD_FOLDER, PANDOC_INPUT_FORMATS, PANDOC_OUTPUT_FORMATS
+    from src.config.swagger import setup_swagger
+    from src.routes.main_routes import register_main_routes
+    from src.routes.api_routes import register_api_routes
+    from src.routes.conversion_routes import register_conversion_routes
+    from src.utils.conversion import process_file_conversion, convert_document
+    from src.utils.history import add_to_history
+    import base64
+    import tempfile
+except ImportError as e:
+    print(f"Error importing modules: {e}")
+    print(f"Current directory: {os.getcwd()}")
+    print(f"Python path: {sys.path}")
+    print(f"Directory contents: {os.listdir('.')}")
+    if os.path.exists('src'):
+        print(f"src directory contents: {os.listdir('src')}")
+        if os.path.exists('src/config'):
+            print(f"src/config directory contents: {os.listdir('src/config')}")
+    raise
 
 def create_app():
     """Create and configure the Flask application"""

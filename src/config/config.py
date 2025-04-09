@@ -5,12 +5,15 @@ APP_AUTHOR = "stop1love1"
 APP_VERSION = "1.0.0"
 
 # Configure upload folder
-UPLOAD_FOLDER = 'uploads'
+UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'uploads')
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
 # Allowed file extensions
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'docx', 'md', 'html', 'odt', 'epub', 'latex', 'tex'}
+
+# Allowed image extensions for OMR scanning
+ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'tif', 'tiff', 'bmp'}
 
 # Pandoc supported formats
 PANDOC_INPUT_FORMATS = [

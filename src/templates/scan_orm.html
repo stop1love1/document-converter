@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan ORM - Document Converter</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        .result-json {
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: monospace;
+            overflow-x: auto;
+            white-space: pre;
+            margin: 15px 0;
+        }
+        .file-preview {
+            max-width: 100%;
+            max-height: 400px;
+            display: block;
+            margin: 10px auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="header-top">
+                <h1><i class="fas fa-database"></i> OMR Scanner</h1>
+                <div class="theme-switch-wrapper">
+                    <label class="theme-switch" for="theme-toggle">
+                        <input type="checkbox" id="theme-toggle" title="Toggle dark/light mode" aria-label="Toggle dark/light mode"/>
+                        <div class="slider round">
+                            <i class="fas fa-sun"></i>
+                            <i class="fas fa-moon"></i>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            <p class="subtitle">Scan and process OMR sheets</p>
+            <div class="header-links">
+                <a href="/" class="home-link"><i class="fas fa-home"></i> Home</a>
+                <a href="/api/docs/" target="_blank" rel="noopener" class="api-link"><i class="fas fa-book"></i> API Documentation</a>
+                <a href="https://github.com/Udayraj123/OMRChecker" target="_blank" rel="noopener" class="github-link"><i class="fab fa-github"></i> OMRChecker</a>
+            </div>
+        </header>
+
+        <div class="content-section">
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-search"></i> OMR Sheet Scanner</h2>
+                </div>
+                <div class="card-body">
+                    <p>Upload an OMR sheet image to scan and extract answers. Results will be returned as JSON.</p>
+                    
+                    <form id="omr-form" enctype="multipart/form-data">
+                        <div class="file-upload-container">
+                            <label for="omr-image" class="file-upload-label">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <span>Choose an OMR sheet image or drag it here</span>
+                            </label>
+                            <input type="file" id="omr-image" name="file" class="file-upload-input" accept="image/*" required>
+                            <div id="image-name" class="file-name"></div>
+                            <div id="image-preview-container" style="display: none;">
+                                <img id="image-preview" class="file-preview" alt="OMR Preview">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label><i class="fas fa-cog"></i> OMR Template (Optional):</label>
+                            <div class="file-upload-container">
+                                <label for="template-file" class="file-upload-label">
+                                    <i class="fas fa-file-code"></i>
+                                    <span>Choose a template JSON file (optional)</span>
+                                </label>
+                                <input type="file" id="template-file" name="template" class="file-upload-input" accept=".json">
+                                <div id="template-name" class="file-name"></div>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn"><i class="fas fa-search"></i> Scan OMR Sheet</button>
+                    </form>
+                    
+                    <div id="result-container" class="result-container" style="display: none;">
+                        <div class="result-header">
+                            <div class="result-title">
+                                <i class="fas fa-check-circle"></i> Scan Results
+                            </div>
+                            <div class="result-actions">
+                                <button id="copy-result-btn" class="btn-small"><i class="fas fa-copy"></i> Copy</button>
+                            </div>
+                        </div>
+                        <div id="result-content" class="result-json"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>&copy; {{ author }} - Document Converter</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const omrForm = document.getElementById('omr-form');
+            const omrImage = document.getElementById('omr-image');
+            const imageName = document.getElementById('image-name');
+            const imagePreviewContainer = document.getElementById('image-preview-container');
+            const imagePreview = document.getElementById('image-preview');
+            const templateFile = document.getElementById('template-file');
+            const templateName = document.getElementById('template-name');
+            const resultContainer = document.getElementById('result-container');
+            const resultContent = document.getElementById('result-content');
+            const copyResultBtn = document.getElementById('copy-result-btn');
+            
+            // Handle image selection
+            omrImage.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    const file = this.files[0];
+                    imageName.textContent = file.name;
+                    
+                    // Show image preview
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        imagePreview.src = e.target.result;
+                        imagePreviewContainer.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    imageName.textContent = '';
+                    imagePreviewContainer.style.display = 'none';
+                }
+            });
+            
+            // Handle template selection
+            templateFile.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    templateName.textContent = this.files[0].name;
+                } else {
+                    templateName.textContent = '';
+                }
+            });
+            
+            // Handle form submission
+            omrForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const submitButton = this.querySelector('button[type="submit"]');
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                
+                // Hide previous results
+                resultContainer.style.display = 'none';
+                
+                // Submit the form
+                fetch('/scan-orm/process', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Display the results
+                    resultContent.textContent = JSON.stringify(data, null, 2);
+                    resultContainer.style.display = 'block';
+                    
+                    // Scroll to results
+                    resultContainer.scrollIntoView({ behavior: 'smooth' });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    resultContent.textContent = JSON.stringify({ error: 'Failed to process the OMR sheet' }, null, 2);
+                    resultContainer.style.display = 'block';
+                })
+                .finally(() => {
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = '<i class="fas fa-search"></i> Scan OMR Sheet';
+                });
+            });
+            
+            // Copy results to clipboard
+            copyResultBtn.addEventListener('click', function() {
+                const text = resultContent.textContent;
+                navigator.clipboard.writeText(text)
+                    .then(() => {
+                        const originalText = this.innerHTML;
+                        this.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                        setTimeout(() => {
+                            this.innerHTML = originalText;
+                        }, 2000);
+                    })
+                    .catch(err => {
+                        console.error('Failed to copy: ', err);
+                    });
+            });
+            
+            // Handle drag and drop
+            const fileInputs = document.querySelectorAll('.file-upload-input');
+            const fileLabels = document.querySelectorAll('.file-upload-label');
+            
+            fileLabels.forEach((label, index) => {
+                label.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    this.classList.add('dragover');
+                });
+                
+                label.addEventListener('dragleave', function() {
+                    this.classList.remove('dragover');
+                });
+                
+                label.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    this.classList.remove('dragover');
+                    fileInputs[index].files = e.dataTransfer.files;
+                    
+                    // Trigger change event
+                    const event = new Event('change', { bubbles: true });
+                    fileInputs[index].dispatchEvent(event);
+                });
+            });
+            
+            // Theme switcher
+            const themeToggle = document.getElementById('theme-toggle');
+            
+            // Check saved theme
+            if (localStorage.getItem('theme') === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                themeToggle.checked = true;
+            }
+            
+            // Handle theme toggle
+            themeToggle.addEventListener('change', function() {
+                if (this.checked) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    document.documentElement.setAttribute('data-theme', 'light');
+                    localStorage.setItem('theme', 'light');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html> 
