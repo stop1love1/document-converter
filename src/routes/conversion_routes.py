@@ -16,6 +16,7 @@ from src.config.config import allowed_file, UPLOAD_FOLDER
 from src.utils.conversion import process_file_conversion, process_text_conversion, process_base64_conversion, process_image_conversion
 from datetime import datetime
 from src.utils.history import add_to_history
+import base64
 
 def register_conversion_routes(app):
     """Register conversion-related routes"""
@@ -286,6 +287,10 @@ def register_conversion_routes(app):
                             'type': 'string',
                             'description': 'URL to download the converted image'
                         },
+                        'base64': {
+                            'type': 'string',
+                            'description': 'Base64 encoded image data'
+                        },
                         'message': {
                             'type': 'string',
                             'description': 'Success message'
@@ -370,6 +375,12 @@ def register_conversion_routes(app):
             try:
                 # Process image conversion
                 result = process_image_conversion(filepath, to_format, quality, resize, options)
+                
+                # Add base64 encoding of the converted image
+                if 'output_path' in result and os.path.exists(result['output_path']):
+                    with open(result['output_path'], "rb") as image_file:
+                        encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+                        result['base64'] = encoded_string
                 
                 # Clean up uploaded file
                 if os.path.exists(filepath):

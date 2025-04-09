@@ -92,9 +92,14 @@ def process_image_conversion(filepath, to_format, quality=100, resize=None, opti
                             os.remove(temp_svg)
                         
                         if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
+                            # Get base64 encoded image
+                            with open(output_path, "rb") as image_file:
+                                encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+                            
                             return {
                                 'success': True,
                                 'downloadUrl': f'/download/{output_filename}',
+                                'base64': encoded_string,
                                 'message': f'Image successfully converted to {to_format} (using SVG)'
                             }
                 except Exception as svg_e:
@@ -123,9 +128,14 @@ def process_image_conversion(filepath, to_format, quality=100, resize=None, opti
                 subprocess.run(cmd, check=True, stderr=subprocess.PIPE, text=True)
                 
                 if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
+                    # Get base64 encoded image
+                    with open(output_path, "rb") as image_file:
+                        encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+                    
                     return {
                         'success': True,
                         'downloadUrl': f'/download/{output_filename}',
+                        'base64': encoded_string,
                         'message': f'Image successfully converted to {to_format}'
                     }
             except Exception as e:
@@ -137,9 +147,14 @@ def process_image_conversion(filepath, to_format, quality=100, resize=None, opti
                 subprocess.run(alt_cmd, check=True)
                 
                 if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
+                    # Get base64 encoded image
+                    with open(output_path, "rb") as image_file:
+                        encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+                    
                     return {
                         'success': True,
                         'downloadUrl': f'/download/{output_filename}',
+                        'base64': encoded_string,
                         'message': f'Image successfully converted to {to_format} (simple method)'
                     }
             except Exception as alt_e:
@@ -172,9 +187,14 @@ def process_image_conversion(filepath, to_format, quality=100, resize=None, opti
                 if not os.path.exists(output_path) or os.path.getsize(output_path) == 0:
                     return {'error': f'Failed to convert {filepath} to {to_format}. Output file was not created.'}
         
+        # Get base64 encoded image
+        with open(output_path, "rb") as image_file:
+            encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+        
         return {
             'success': True,
             'downloadUrl': f'/download/{output_filename}',
+            'base64': encoded_string,
             'message': f'Image successfully converted to {to_format}'
         }
     except subprocess.CalledProcessError as e:
@@ -188,9 +208,14 @@ def process_image_conversion(filepath, to_format, quality=100, resize=None, opti
                 subprocess.run(alt_cmd, check=True)
                 
                 if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
+                    # Get base64 encoded image
+                    with open(output_path, "rb") as image_file:
+                        encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+                    
                     return {
                         'success': True,
                         'downloadUrl': f'/download/{output_filename}',
+                        'base64': encoded_string,
                         'message': f'Image successfully converted to {to_format} (alternative method)'
                     }
             except Exception as alt_e:

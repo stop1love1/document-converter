@@ -921,7 +921,7 @@ function setupFormSubmission() {
                 if (data.error) {
                     showToast(data.error, 'error');
                 } else {
-                    displayImageResult(data.downloadUrl, toFormat);
+                    displayImageResult(data.downloadUrl, toFormat, data.base64);
                     showToast('Image converted successfully', 'success');
                 }
             })
@@ -1471,7 +1471,7 @@ function initKeyboardShortcuts() {
 }
 
 // Display image result
-function displayImageResult(downloadUrl, format) {
+function displayImageResult(downloadUrl, format, base64Data = null) {
     const resultContainer = document.getElementById('image-result-container');
     const resultImage = document.getElementById('image-result-preview');
     const downloadBtn = document.getElementById('image-download-btn');
@@ -1487,6 +1487,42 @@ function displayImageResult(downloadUrl, format) {
     // Display the converted image
     resultImage.src = downloadUrl;
     resultImage.style.display = 'block';
+    
+    // Store base64 data as a data attribute if available
+    if (base64Data) {
+        resultImage.setAttribute('data-base64', base64Data);
+        
+        // Add a copy base64 button if it doesn't exist
+        let copyBase64Btn = document.getElementById('copy-base64-btn');
+        if (!copyBase64Btn) {
+            copyBase64Btn = document.createElement('button');
+            copyBase64Btn.id = 'copy-base64-btn';
+            copyBase64Btn.className = 'btn btn-sm';
+            copyBase64Btn.innerHTML = '<i class="fas fa-copy"></i> Copy Base64';
+            copyBase64Btn.style.marginLeft = '10px';
+            
+            // Insert the button next to download button
+            downloadBtn.parentNode.insertBefore(copyBase64Btn, downloadBtn.nextSibling);
+            
+            // Add click event to copy base64 data
+            copyBase64Btn.addEventListener('click', function() {
+                const base64 = resultImage.getAttribute('data-base64');
+                if (base64) {
+                    navigator.clipboard.writeText(base64)
+                        .then(() => {
+                            showToast('Base64 data copied to clipboard', 'success');
+                        })
+                        .catch(err => {
+                            console.error('Failed to copy: ', err);
+                            showToast('Failed to copy base64 data', 'error');
+                        });
+                }
+            });
+        }
+        
+        // Make sure the button is visible
+        copyBase64Btn.style.display = 'inline-flex';
+    }
     
     // Update download button
     downloadBtn.href = downloadUrl;
@@ -1563,7 +1599,7 @@ document.getElementById('image-form').addEventListener('submit', function(e) {
         if (data.error) {
             showToast(data.error, 'error');
         } else {
-            displayImageResult(data.downloadUrl, toFormat);
+            displayImageResult(data.downloadUrl, toFormat, data.base64);
             showToast('Image converted successfully', 'success');
         }
     })
