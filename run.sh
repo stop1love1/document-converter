@@ -28,9 +28,11 @@ else
 fi
 
 # Set Flask environment variables
-export FLASK_APP=server.py
+export FLASK_APP=app.py
 export FLASK_ENV=development
 
 # Start the server
 echo "Starting document converter UI server..."
-flask run --host=0.0.0.0 --port=5000
+python app.py
+# Alternative method
+# flask run --host=0.0.0.0 --port=5000

@@ -139,6 +139,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
     
+    // Handle keyboard shortcut button
     // Keyboard shortcuts button
     const shortcutsBtn = document.getElementById('show-shortcuts-btn');
     const shortcutsModal = document.getElementById('keyboard-shortcuts-modal');
@@ -159,140 +160,118 @@ document.addEventListener("DOMContentLoaded", function () {
 
 // Initialize file input handling
 function initFileInput() {
-    const fileDropZones = document.querySelectorAll('.file-drop-zone');
+    // File Upload Tab
+    const fileInput = document.getElementById('file-input');
+    const fileUploadLabel = document.querySelector('#file-tab .file-upload-label');
+    const fileNameElement = document.getElementById('file-name');
+    const previewFileBtn = document.getElementById('preview-file-btn');
     
-    fileDropZones.forEach(dropZone => {
-        const fileInput = dropZone.querySelector('input[type="file"]');
-        const fileLabel = dropZone.querySelector('.custom-file-label');
-        const previewBtn = dropZone.querySelector('.preview-btn');
-        
-        if (!fileInput || !fileLabel) return;
-        
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                if (eventName === 'dragenter' || eventName === 'dragover') {
-                    dropZone.classList.add('drag-over');
-                } else {
-                    dropZone.classList.remove('drag-over');
-                    
-                    if (eventName === 'drop') {
-                        const dt = e.dataTransfer;
-                        fileInput.files = dt.files;
-                        
-                        const fileEvent = new Event('change', { bubbles: true });
-                        fileInput.dispatchEvent(fileEvent);
-                    }
-                }
-            });
+    if (fileInput && fileUploadLabel) {
+        // Make the entire label area clickable to trigger file selection
+        fileUploadLabel.addEventListener('click', function(e) {
+            e.preventDefault();
+            fileInput.click();
         });
         
-        fileLabel.onclick = function(e) {
-            if (e.target === this) {
-                fileInput.click();
-            }
-        };
-        
         fileInput.addEventListener('change', function() {
-            if (this.files.length > 0) {
+            if (this.files && this.files.length > 0) {
                 const fileName = this.files[0].name;
-                const fileNameElement = dropZone.querySelector('.file-name');
                 
                 if (fileNameElement) {
                     fileNameElement.textContent = fileName;
-                    fileNameElement.style.display = 'inline-block';
-                } else {
-                    const nameSpan = document.createElement('span');
-                    nameSpan.className = 'file-name';
-                    nameSpan.textContent = fileName;
-                    fileLabel.appendChild(nameSpan);
+                    fileNameElement.style.display = 'block';
                 }
                 
-                fileLabel.classList.add('file-selected');
-                dropZone.classList.add('has-file');
+                fileUploadLabel.classList.add('file-selected');
                 
-                if (previewBtn) {
-                    if (isFilePreviewable(fileName)) {
-                        previewBtn.classList.remove('d-none');
-                        previewBtn.style.display = 'inline-flex';
-                    } else {
-                        previewBtn.classList.add('d-none');
-                        previewBtn.style.display = 'none';
-                    }
+                if (previewFileBtn && isFilePreviewable(fileName)) {
+                    previewFileBtn.style.display = 'inline-flex';
                 }
             } else {
-                const fileNameElement = dropZone.querySelector('.file-name');
                 if (fileNameElement) {
                     fileNameElement.textContent = '';
                     fileNameElement.style.display = 'none';
                 }
                 
-                fileLabel.classList.remove('file-selected');
-                dropZone.classList.remove('has-file');
+                fileUploadLabel.classList.remove('file-selected');
                 
-                if (previewBtn) {
-                    previewBtn.classList.add('d-none');
-                    previewBtn.style.display = 'none';
-                }
-            }
-        });
-    });
-    
-    const imageInput = document.getElementById('image-input');
-    const imageDropZone = document.querySelector('#image-tab .file-upload-container');
-    const imageLabel = imageDropZone ? imageDropZone.querySelector('.file-upload-label') : null;
-    const imagePreviewBtn = document.getElementById('preview-image-btn');
-    
-    if (imageInput && imageLabel) {
-        imageLabel.onclick = function(e) {
-            if (e.target === imageLabel || e.target === imageLabel.querySelector('i') || e.target === imageLabel.querySelector('span')) {
-                e.preventDefault();
-                imageInput.click();
-            }
-        };
-        
-        imageInput.addEventListener('change', function() {
-            if (this.files && this.files.length > 0) {
-                const file = this.files[0];
-                const imageName = document.getElementById('image-name');
-                
-                if (imageName) {
-                    imageName.textContent = file.name;
-                    imageName.style.display = 'block';
-                    
-                    imageDropZone.classList.add('has-file');
-                }
-                
-                if (imagePreviewBtn) {
-                    imagePreviewBtn.style.display = 'inline-flex';
-                    
-                    imagePreviewBtn.onclick = function() {
-                        const fileURL = URL.createObjectURL(file);
-                        showImagePreview(fileURL);
-                    };
-                }
-                
-                const toFormatSelect = document.getElementById('image-to-format');
-                if (toFormatSelect) {
-                    const extension = file.name.split('.').pop().toLowerCase();
-                    showToast(`Current format is: ${extension.toUpperCase()}`, 'info');
-                }
-                
-                if (imageLabel) {
-                    const span = imageLabel.querySelector('span');
-                    if (span) {
-                        span.textContent = "Image selected";
-                    }
+                if (previewFileBtn) {
+                    previewFileBtn.style.display = 'none';
                 }
             }
         });
     }
     
-    if (imageDropZone) {
+    // Image Upload Tab
+    const imageInput = document.getElementById('image-input');
+    const imageUploadLabel = document.querySelector('#image-tab .file-upload-label');
+    const imageNameElement = document.getElementById('image-name');
+    const imagePreviewContainer = document.getElementById('image-preview-container');
+    const imagePreview = document.getElementById('image-preview');
+    
+    if (imageInput && imageUploadLabel) {
+        // Make the entire label area clickable to trigger file selection
+        imageUploadLabel.addEventListener('click', function(e) {
+            e.preventDefault();
+            imageInput.click();
+        });
+        
+        imageInput.addEventListener('change', function() {
+            if (this.files && this.files.length > 0) {
+                const file = this.files[0];
+                
+                if (imageNameElement) {
+                    imageNameElement.textContent = file.name;
+                    imageNameElement.style.display = 'block';
+                }
+                
+                imageUploadLabel.classList.add('file-selected');
+                
+                // Show preview of the image
+                if (imagePreviewContainer && imagePreview && file.type.startsWith('image/')) {
+                    const fileURL = URL.createObjectURL(file);
+                    imagePreview.src = fileURL;
+                    imagePreviewContainer.style.display = 'block';
+                    
+                    // Add event listener to clean up the object URL
+                    imagePreview.onload = function() {
+                        URL.revokeObjectURL(fileURL);
+                    };
+                }
+                
+                const span = imageUploadLabel.querySelector('span');
+                if (span) {
+                    span.textContent = "Image selected";
+                }
+                
+                // Get file extension for information
+                const extension = file.name.split('.').pop().toLowerCase();
+                showToast(`Selected image format: ${extension.toUpperCase()}`, 'info');
+            } else {
+                if (imageNameElement) {
+                    imageNameElement.textContent = '';
+                    imageNameElement.style.display = 'none';
+                }
+                
+                imageUploadLabel.classList.remove('file-selected');
+                
+                if (imagePreviewContainer) {
+                    imagePreviewContainer.style.display = 'none';
+                }
+                
+                const span = imageUploadLabel.querySelector('span');
+                if (span) {
+                    span.textContent = "Choose an image or drag it here";
+                }
+            }
+        });
+    }
+    
+    // Handle drag and drop for both containers
+    const fileContainers = document.querySelectorAll('.file-upload-container');
+    fileContainers.forEach(container => {
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            imageDropZone.addEventListener(eventName, function(e) {
+            container.addEventListener(eventName, function(e) {
                 e.preventDefault();
                 e.stopPropagation();
                 
@@ -302,14 +281,18 @@ function initFileInput() {
                     this.classList.remove('dragover');
                     
                     if (eventName === 'drop' && e.dataTransfer.files.length) {
-                        imageInput.files = e.dataTransfer.files;
-                        const event = new Event('change', { bubbles: true });
-                        imageInput.dispatchEvent(event);
+                        // Determine which input to use based on container
+                        const input = container.closest('#file-tab') ? fileInput : imageInput;
+                        if (input) {
+                            input.files = e.dataTransfer.files;
+                            const event = new Event('change', { bubbles: true });
+                            input.dispatchEvent(event);
+                        }
                     }
                 }
             }, false);
         });
-    }
+    });
 }
 
 // Check if file can be previewed
@@ -872,7 +855,7 @@ function setupFormSubmission() {
                 addToHistory(historyItem);
                 
                 // Display result
-                displayFileResult(data.downloadUrl || data.download_url);
+                displayFileResult(data, toFormat);
             })
             .catch(error => {
                 hideProgressBar();
@@ -889,82 +872,63 @@ function setupFormSubmission() {
             console.log("Image form submitted");
             
             const imageInput = document.getElementById('image-input');
-            if (!imageInput.files.length) {
+            const toFormat = document.getElementById('image-to-format').value;
+            
+            if (!imageInput.files || imageInput.files.length === 0) {
                 showToast('Please select an image', 'error');
                 return;
             }
             
-            const file = imageInput.files[0];
-            
-            const toFormat = document.getElementById('image-to-format').value;
             if (!toFormat) {
-                showToast('Please select a target format', 'error');
+                showToast('Please select an output format', 'error');
                 return;
             }
             
-            showProgressBar();
+            // Show loading state
+            showLoadingOverlay('Converting image...');
             
-            // Create FormData to send image
             const formData = new FormData();
-            formData.append('image', file);
+            formData.append('image', imageInput.files[0]);
+            
+            // For regular image conversion
             formData.append('to_format', toFormat);
             
-            // Get quality if provided
-            const quality = document.getElementById('image-quality').value;
-            if (quality) {
-                formData.append('quality', quality);
+            // Add quality if available
+            const qualityInput = document.getElementById('image-quality');
+            if (qualityInput && qualityInput.value) {
+                formData.append('quality', qualityInput.value);
             }
             
-            // Get resize if provided
-            const resize = document.getElementById('image-resize').value;
-            if (resize) {
-                formData.append('resize', resize);
+            // Add resize if available
+            const resizeInput = document.getElementById('image-resize');
+            if (resizeInput && resizeInput.value) {
+                formData.append('resize', resizeInput.value);
             }
             
-            // Get additional options if provided
-            const options = document.getElementById('image-options').value;
-            if (options) {
-                formData.append('options', options);
+            // Add options if available
+            const optionsInput = document.getElementById('image-options');
+            if (optionsInput && optionsInput.value) {
+                formData.append('options', optionsInput.value);
             }
             
             fetch('/convert/image', {
                 method: 'POST',
                 body: formData
             })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Server responded with ${response.status}`);
-                }
-                return response.json();
-            })
+            .then(response => response.json())
             .then(data => {
-                hideProgressBar();
-                console.log("API response:", data);
-                
+                hideLoadingOverlay();
                 if (data.error) {
                     showToast(data.error, 'error');
-                    return;
+                } else {
+                    displayImageResult(data.downloadUrl, toFormat);
+                    showToast('Image converted successfully', 'success');
                 }
-                
-                // Save to history
-                const historyItem = {
-                    name: file.name,
-                    from: file.name.split('.').pop() || 'unknown',
-                    to: toFormat,
-                    date: new Date().toISOString(),
-                    isFile: true,
-                    downloadUrl: data.downloadUrl || data.download_url
-                };
-                
-                addToHistory(historyItem);
-                
-                // Display result
-                displayImageResult(data.downloadUrl || data.download_url, toFormat);
             })
             .catch(error => {
-                hideProgressBar();
+                hideLoadingOverlay();
                 console.error('Error:', error);
-                showToast('Error converting image: ' + error.message, 'error');
+                showToast('An error occurred while converting the image', 'error');
             });
         });
     }
@@ -1144,8 +1108,8 @@ function addToHistory(item) {
     displayConversionHistory();
 }
 
-// Display file result
-function displayFileResult(downloadUrl) {
+// Function to display file conversion result
+function displayFileResult(result, outputFormat) {
     const resultContainer = document.getElementById('file-result-container');
     const resultContent = document.getElementById('file-result-content');
     
@@ -1154,57 +1118,47 @@ function displayFileResult(downloadUrl) {
         return;
     }
     
+    // Show result container
+    resultContainer.style.display = 'block';
+    
+    // Clear previous content
     resultContent.innerHTML = '';
     
-    if (downloadUrl) {
-        // Check if it's an image to display preview
-        if (downloadUrl.match(/\.(jpg|jpeg|png|gif|svg)$/i)) {
-            const img = document.createElement('img');
-            img.src = downloadUrl;
-            img.style.maxWidth = '100%';
-            img.alt = 'Converted image';
-            resultContent.appendChild(img);
-        } 
-        // Check if it's a PDF to display preview
-        else if (downloadUrl.match(/\.pdf$/i)) {
-            const iframe = document.createElement('iframe');
-            iframe.src = downloadUrl;
-            iframe.style.width = '100%';
-            iframe.style.height = '500px';
-            resultContent.appendChild(iframe);
-        }
-        // Default file result
-        else {
-            resultContent.innerHTML = `
-                <div class="success-message">
-                    <i class="fas fa-check-circle"></i> File converted successfully
-                </div>
-                <p>Your file is ready to download.</p>
-            `;
-        }
-        
-        // Update download button
+    if (result.downloadUrl) {
+        // Create preview of the result if possible
         const downloadBtn = document.getElementById('file-download-btn');
         if (downloadBtn) {
-            // Remove previous listeners
-            const newDownloadBtn = downloadBtn.cloneNode(true);
-            if (downloadBtn.parentNode) {
-                downloadBtn.parentNode.replaceChild(newDownloadBtn, downloadBtn);
-            }
-            
-            newDownloadBtn.addEventListener('click', function() {
-                window.location.href = downloadUrl;
-            });
+            downloadBtn.href = result.downloadUrl;
+            downloadBtn.style.display = 'inline-flex';
+        }
+        
+        // If output is an image, show it
+        if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp'].includes(outputFormat)) {
+            const img = document.createElement('img');
+            img.src = result.downloadUrl;
+            img.className = 'result-image';
+            img.alt = 'Converted file';
+            resultContent.appendChild(img);
+        } else {
+            // For other formats, show a link and info
+            const info = document.createElement('div');
+            info.className = 'result-info';
+            info.innerHTML = `
+                <p><i class="fas fa-check-circle"></i> File converted successfully!</p>
+                <p>You can download the converted file using the button above.</p>
+            `;
+            resultContent.appendChild(info);
         }
     } else {
-        resultContent.innerHTML = `
-            <div class="error-message">
-                <i class="fas fa-exclamation-circle"></i> No download URL provided
-            </div>
-        `;
+        // Show error
+        const error = document.createElement('div');
+        error.className = 'error';
+        error.textContent = 'Error generating download link';
+        resultContent.appendChild(error);
     }
     
-    resultContainer.style.display = 'block';
+    // Scroll to result
+    resultContainer.scrollIntoView({ behavior: 'smooth' });
 }
 
 // Display text result
@@ -1403,6 +1357,17 @@ function hideProgressBar() {
     }, 300);
 }
 
+// Alias functions for loading overlay (to fix missing function errors)
+function showLoadingOverlay(message) {
+    // You can optionally display the message somewhere if needed
+    console.log(message);
+    return showProgressBar();
+}
+
+function hideLoadingOverlay() {
+    return hideProgressBar();
+}
+
 // Show toast notification
 function showToast(message, type = 'info') {
     // Create toast container if it doesn't exist
@@ -1508,56 +1473,103 @@ function initKeyboardShortcuts() {
 // Display image result
 function displayImageResult(downloadUrl, format) {
     const resultContainer = document.getElementById('image-result-container');
-    const resultContent = document.getElementById('image-result-content');
+    const resultImage = document.getElementById('image-result-preview');
+    const downloadBtn = document.getElementById('image-download-btn');
     
-    if (!resultContainer || !resultContent) {
+    if (!resultContainer || !resultImage || !downloadBtn) {
         console.error("Image result elements not found");
         return;
     }
     
-    resultContent.innerHTML = '';
+    // Show result container
+    resultContainer.style.display = 'block';
     
-    if (downloadUrl) {
-        // Display image preview
-        const img = document.createElement('img');
-        img.src = downloadUrl;
-        img.style.maxWidth = '100%';
-        img.style.maxHeight = '400px';
-        img.alt = 'Converted image';
-        img.className = 'converted-image-preview';
-        resultContent.appendChild(img);
-        
-        // Add conversion details
-        const details = document.createElement('div');
-        details.className = 'conversion-details';
-        details.innerHTML = `
-            <div class="success-message">
-                <i class="fas fa-check-circle"></i> Image converted successfully to ${format}
-            </div>
-            <p>Your image is ready to download.</p>
-        `;
-        resultContent.appendChild(details);
-        
-        // Update download button
-        const downloadBtn = document.getElementById('image-download-btn');
-        if (downloadBtn) {
-            // Remove previous listeners
-            const newDownloadBtn = downloadBtn.cloneNode(true);
-            if (downloadBtn.parentNode) {
-                downloadBtn.parentNode.replaceChild(newDownloadBtn, downloadBtn);
-            }
+    // Display the converted image
+    resultImage.src = downloadUrl;
+    resultImage.style.display = 'block';
+    
+    // Update download button
+    downloadBtn.href = downloadUrl;
+    
+    // Scroll to result
+    resultContainer.scrollIntoView({ behavior: 'smooth' });
+}
+
+// Setup quick format buttons for image conversion
+const quickFormatButtons = document.querySelectorAll('.quick-format-btn');
+quickFormatButtons.forEach(button => {
+    button.addEventListener('click', function() {
+        const format = this.getAttribute('data-to');
+        const formatSelect = document.querySelector('#image-to-format');
+        if (formatSelect) {
+            formatSelect.value = format;
             
-            newDownloadBtn.addEventListener('click', function() {
-                window.location.href = downloadUrl;
-            });
+            // ... existing code ...
         }
-    } else {
-        resultContent.innerHTML = `
-            <div class="error-message">
-                <i class="fas fa-exclamation-circle"></i> No download URL provided
-            </div>
-        `;
+    });
+});
+
+// Handle image form submission
+document.getElementById('image-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const imageInput = document.getElementById('image-input');
+    const toFormat = document.getElementById('image-to-format').value;
+    
+    if (!imageInput.files || imageInput.files.length === 0) {
+        showToast('Please select an image', 'error');
+        return;
     }
     
-    resultContainer.style.display = 'block';
-}
+    if (!toFormat) {
+        showToast('Please select an output format', 'error');
+        return;
+    }
+    
+    // Show loading state
+    showLoadingOverlay('Converting image...');
+    
+    const formData = new FormData();
+    formData.append('image', imageInput.files[0]);
+    
+    // For regular image conversion
+    formData.append('to_format', toFormat);
+    
+    // Add quality if available
+    const qualityInput = document.getElementById('image-quality');
+    if (qualityInput && qualityInput.value) {
+        formData.append('quality', qualityInput.value);
+    }
+    
+    // Add resize if available
+    const resizeInput = document.getElementById('image-resize');
+    if (resizeInput && resizeInput.value) {
+        formData.append('resize', resizeInput.value);
+    }
+    
+    // Add options if available
+    const optionsInput = document.getElementById('image-options');
+    if (optionsInput && optionsInput.value) {
+        formData.append('options', optionsInput.value);
+    }
+    
+    fetch('/convert/image', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoadingOverlay();
+        if (data.error) {
+            showToast(data.error, 'error');
+        } else {
+            displayImageResult(data.downloadUrl, toFormat);
+            showToast('Image converted successfully', 'success');
+        }
+    })
+    .catch(error => {
+        hideLoadingOverlay();
+        console.error('Error:', error);
+        showToast('An error occurred while converting the image', 'error');
+    });
+});

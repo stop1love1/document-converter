@@ -3,6 +3,8 @@ import tempfile
 import base64
 import subprocess
 from src.config.config import UPLOAD_FOLDER
+from PIL import Image
+from flask import jsonify
 
 def process_file_conversion(filepath, from_format, to_format, options):
     """Process file conversion using pandoc"""
@@ -280,4 +282,92 @@ def process_base64_conversion(base64_data, from_format, to_format, options):
             'content': content
         }
     except subprocess.CalledProcessError as e:
-        return {'error': f'Conversion failed: {str(e)}'} 
+        return {'error': f'Conversion failed: {str(e)}'}
+
+def process_file_with_pandoc(input_file, output_format, options=None):
+    """
+    Process file conversion using pandoc or other tools.
+    
+    This is a utility function used internally and not exposed through the API.
+    """
+    try:
+        # Create a temporary file for the output
+        with tempfile.NamedTemporaryFile(delete=False, suffix=f'.{output_format}') as temp_output:
+            output_path = temp_output.name
+
+        # Use pandoc for text-based conversions
+        if output_format in ['txt', 'md', 'html', 'pdf', 'docx', 'rtf']:
+            cmd = ['pandoc', input_file, '-o', output_path]
+            if options:
+                cmd.extend(options.split())
+            subprocess.run(cmd, check=True)
+        else:
+            raise ValueError(f"Unsupported output format: {output_format}")
+
+        # Read the output file
+        with open(output_path, 'rb') as f:
+            output_data = f.read()
+
+        # Clean up the temporary file
+        os.unlink(output_path)
+
+        return output_data
+    except Exception as e:
+        raise Exception(f"Error converting file: {str(e)}")
+
+def convert_document(request, config):
+    """
+    Handle document conversion from web requests
+    
+    Args:
+        request: Flask request object
+        config: Flask app config
+        
+    Returns:
+        JSON response with conversion results
+    """
+    try:
+        if 'file' not in request.files and 'text' not in request.form and 'base64' not in request.form:
+            return jsonify({'error': 'No file or text data provided'}), 400
+            
+        from_format = request.form.get('from_format', '')
+        to_format = request.form.get('to_format', '')
+        options = request.form.get('options', '')
+        
+        if not from_format or not to_format:
+            return jsonify({'error': 'Source and target formats are required'}), 400
+            
+        # Handle file upload
+        if 'file' in request.files:
+            file = request.files['file']
+            if file.filename == '':
+                return jsonify({'error': 'No file selected'}), 400
+                
+            filename = file.filename
+            filepath = os.path.join(config['UPLOAD_FOLDER'], filename)
+            file.save(filepath)
+            
+            # Check if it's an image conversion
+            if from_format in ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'tiff', 'wmf', 'emf']:
+                quality = int(request.form.get('quality', 90))
+                resize = request.form.get('resize', None)
+                result = process_image_conversion(filepath, to_format, quality, resize, options)
+            else:
+                result = process_file_conversion(filepath, from_format, to_format, options)
+                
+            return jsonify(result)
+            
+        # Handle text input
+        elif 'text' in request.form:
+            text = request.form['text']
+            result = process_text_conversion(text, from_format, to_format, options)
+            return jsonify(result)
+            
+        # Handle base64 input (for images)
+        elif 'base64' in request.form:
+            base64_data = request.form['base64']
+            result = process_base64_conversion(base64_data, from_format, to_format, options)
+            return jsonify(result)
+            
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500 

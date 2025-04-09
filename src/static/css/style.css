@@ -413,36 +413,27 @@ select:focus {
     background-color: var(--hover-color);
 }
 
-.file-upload-container.dragover {
+.file-upload-container.dragover, 
+.file-upload-container.file-selected {
     border-color: var(--primary-color);
     background-color: var(--hover-color);
-    box-shadow: 0 0 10px rgba(var(--primary-rgb), 0.3);
-}
-
-.file-upload-container.has-file {
-    border-color: var(--success-color);
-    background-color: rgba(var(--success-rgb), 0.05);
+    box-shadow: 0 0 10px rgba(74, 111, 165, 0.3);
 }
 
 .file-upload-label {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    gap: 15px;
     cursor: pointer;
-    -webkit-user-select: none;
-    user-select: none;
+    width: 100%;
+    height: 100%;
 }
 
 .file-upload-label i {
-    font-size: 3rem;
+    font-size: 2.5rem;
     color: var(--primary-color);
-    margin-bottom: 15px;
-    transition: transform 0.3s ease;
-}
-
-.file-upload-container:hover .file-upload-label i {
-    transform: translateY(-5px);
+    margin-bottom: 10px;
 }
 
 .file-upload-label span {
@@ -452,30 +443,57 @@ select:focus {
 
 .file-upload-input {
     position: absolute;
+    opacity: 0;
     width: 0.1px;
     height: 0.1px;
-    opacity: 0;
     overflow: hidden;
     z-index: -1;
 }
 
 .file-name {
-    margin-top: 15px;
-    font-weight: 500;
-    color: var(--primary-color);
-    word-break: break-all;
-    padding: 8px 12px;
-    background-color: var(--light-accent);
-    border-radius: 6px;
     display: none;
+    margin-top: 15px;
+    padding: 8px 12px;
+    background-color: var(--primary-light);
+    color: var(--primary-dark);
+    border-radius: 5px;
+    font-weight: 500;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.file-upload-container.has-file .file-upload-label {
-    margin-bottom: 10px;
+/* Image preview styling */
+#image-preview-container {
+    margin-top: 20px;
+    text-align: center;
+    display: none;
+    background-color: var(--bg-secondary);
+    border-radius: 8px;
+    padding: 15px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.file-upload-container.has-file .file-upload-label i {
-    color: var(--success-color);
+#image-preview {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 5px;
+    object-fit: contain;
+}
+
+/* Result image styling */
+.result-image {
+    max-width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 3px 10px var(--shadow-color);
+    margin: 10px 0;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-color);
+    height: auto;
+    max-height: 500px;
+    object-fit: contain;
 }
 
 .preview-btn {
@@ -822,9 +840,7 @@ select:focus {
 
 .options-container {
     position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+    margin-bottom: 15px;
 }
 
 .options-help {
@@ -1422,4 +1438,157 @@ kbd {
 
 .options-select option:hover {
     background-color: var(--hover-color);
+}
+
+/* LaTeX Output Styles */
+.latex-output {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    margin: 1rem 0;
+    font-family: 'Courier New', Courier, monospace;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    max-height: 500px;
+    overflow-y: auto;
+    line-height: 1.5;
+    color: var(--text-primary);
+}
+
+.latex-output::-webkit-scrollbar {
+    width: 8px;
+}
+
+.latex-output::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+}
+
+.latex-output::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+.latex-output::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}
+
+/* Error message styles */
+.error {
+    color: var(--error-color);
+    background-color: var(--error-bg);
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    margin: 1rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.error i {
+    font-size: 1.2rem;
+}
+
+/* LaTeX OCR Highlight Styles */
+.latex-ocr-highlight {
+    background: linear-gradient(135deg, var(--card-bg), var(--light-accent));
+    border: 2px solid var(--primary-color);
+    border-radius: 10px;
+    padding: 20px;
+    margin: 20px 0;
+    box-shadow: 0 5px 15px var(--shadow-color);
+    position: relative;
+    overflow: hidden;
+}
+
+.latex-ocr-highlight::before {
+    content: "New";
+    position: absolute;
+    top: 10px;
+    right: -30px;
+    background-color: var(--primary-color);
+    color: white;
+    padding: 5px 30px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    transform: rotate(45deg);
+    z-index: 1;
+}
+
+.highlight-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.highlight-header i {
+    font-size: 1.8rem;
+    color: var(--primary-color);
+}
+
+.highlight-header h3 {
+    color: var(--primary-color);
+    font-size: 1.4rem;
+    margin: 0;
+}
+
+.latex-ocr-highlight p {
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+    color: var(--text-color);
+}
+
+.latex-convert-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 12px 20px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+.latex-convert-btn:hover {
+    background-color: var(--primary-hover);
+    transform: scale(1.02);
+}
+
+.latex-convert-btn i {
+    font-size: 1.2rem;
+}
+
+.latex-notice {
+    background-color: var(--info-color);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.95rem;
+}
+
+.latex-notice i {
+    font-size: 1.2rem;
+}
+
+/* Button highlight animation */
+@keyframes button-highlight {
+    0% { box-shadow: 0 0 0 0 rgba(74, 111, 165, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(74, 111, 165, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(74, 111, 165, 0); }
+}
+
+.highlight-btn {
+    animation: button-highlight 1s ease-out;
 }

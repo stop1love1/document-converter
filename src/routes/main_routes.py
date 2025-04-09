@@ -18,8 +18,4 @@ def register_main_routes(app):
         return send_file(
             os.path.join(UPLOAD_FOLDER, filename),
             as_attachment=True
-        )
-
-    @app.route('/docs/')
-    def api_docs_redirect():
-        return redirect('/api/docs/') 
+        ) 

@@ -1,5 +1,15 @@
 from flask import jsonify, request, send_file
-from flasgger import swag_from
+try:
+    from flasgger import swag_from
+    SWAGGER_AVAILABLE = True
+except ImportError:
+    SWAGGER_AVAILABLE = False
+    # Tạo một decorator giả để thay thế swag_from
+    def swag_from(content, **kwargs):
+        def decorator(f):
+            return f
+        return decorator
+
 import json
 import os
 import tempfile
