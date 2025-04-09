@@ -35,6 +35,8 @@ RUN echo 'Acquire::Retries "3";' > /etc/apt/apt.conf.d/80-retries && \
     xvfb \
     xauth \
     python3-opengl \
+    file \
+    procps \
     && rm -rf /var/lib/apt/lists/*
 
 # Cấu hình ImageMagick để cho phép chuyển đổi tất cả các định dạng
