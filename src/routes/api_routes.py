@@ -4,14 +4,12 @@ try:
     SWAGGER_AVAILABLE = True
 except ImportError:
     SWAGGER_AVAILABLE = False
-    # Tạo một decorator giả để thay thế swag_from
     def swag_from(content, **kwargs):
         def decorator(f):
             return f
         return decorator
 
 import json
-import os
 import tempfile
 import zipfile
 import io
@@ -101,6 +99,7 @@ def register_api_routes(app):
             }
         }
     })
+    # pylint: disable=unused-variable
     def download_history():
         try:
             # Get history data from request

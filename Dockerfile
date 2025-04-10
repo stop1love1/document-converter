@@ -25,7 +25,6 @@ RUN echo 'Acquire::Retries "3";' > /etc/apt/apt.conf.d/80-retries && \
     libtiff-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Cấu hình ImageMagick để cho phép chuyển đổi tất cả các định dạng
 RUN if [ -f /etc/ImageMagick-6/policy.xml ]; then \
         sed -i 's/rights="none" pattern="PDF"/rights="read|write" pattern="PDF"/' /etc/ImageMagick-6/policy.xml && \
         sed -i 's/rights="none" pattern="LABEL"/rights="read|write" pattern="LABEL"/' /etc/ImageMagick-6/policy.xml && \
@@ -62,7 +61,6 @@ RUN chmod -R 777 uploads results
 COPY entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
-# Expose port
 EXPOSE 5000
 
 # Run the application with our entrypoint script

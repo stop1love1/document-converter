@@ -1,12 +1,10 @@
-from flask import render_template, redirect, send_file, request, jsonify
+from flask import render_template, send_file
 import os
-import uuid
 from src.config.config import APP_AUTHOR, PANDOC_INPUT_FORMATS, PANDOC_OUTPUT_FORMATS, PANDOC_COMMON_OPTIONS, UPLOAD_FOLDER
 
 def register_main_routes(app):
     """Register main application routes"""
     
-    # Ensure upload directory exists
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
     
     @app.route('/')

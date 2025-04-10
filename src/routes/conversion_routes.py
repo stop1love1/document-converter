@@ -4,7 +4,6 @@ try:
     SWAGGER_AVAILABLE = True
 except ImportError:
     SWAGGER_AVAILABLE = False
-    # Tạo một decorator giả để thay thế swag_from
     def swag_from(content, **kwargs):
         def decorator(f):
             return f
@@ -14,8 +13,6 @@ from werkzeug.utils import secure_filename
 import os
 from src.config.config import allowed_file, UPLOAD_FOLDER
 from src.utils.conversion import process_file_conversion, process_text_conversion, process_base64_conversion, process_image_conversion
-from datetime import datetime
-from src.utils.history import add_to_history
 import base64
 
 def register_conversion_routes(app):

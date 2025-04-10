@@ -2,7 +2,6 @@ try:
     from flasgger import Swagger
     from markupsafe import Markup
     
-    # Monkey patch để giải quyết vấn đề với Markup
     try:
         import flask
         if not hasattr(flask, 'Markup'):
