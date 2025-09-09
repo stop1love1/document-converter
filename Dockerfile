@@ -59,7 +59,7 @@ RUN chmod -R 777 uploads results
 
 # Make the entrypoint script executable
 COPY entrypoint.sh /app/entrypoint.sh
-RUN chmod +x /app/entrypoint.sh
+RUN sed -i 's/\r$//' /app/entrypoint.sh && chmod +x /app/entrypoint.sh
 
 EXPOSE 5000
 

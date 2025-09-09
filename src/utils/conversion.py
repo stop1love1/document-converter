@@ -5,27 +5,163 @@ import subprocess
 from src.config.config import UPLOAD_FOLDER
 from PIL import Image
 from flask import jsonify
+from bs4 import BeautifulSoup
 
 def process_file_conversion(filepath, from_format, to_format, options):
     """Process file conversion using pandoc"""
     try:
         output_filename = f"{os.path.splitext(os.path.basename(filepath))[0]}.{to_format}"
         output_path = os.path.join(UPLOAD_FOLDER, output_filename)
-        
+
+        is_docx_to_html = from_format.lower() == 'docx' and to_format.lower() in ['html', 'html4', 'html5']
+
+        if is_docx_to_html:
+            # Extract media so we can process WMF/EMF and enable MathJax so OMML -> LaTeX
+            media_dir = os.path.join(UPLOAD_FOLDER, f"{os.path.splitext(os.path.basename(filepath))[0]}_media")
+            os.makedirs(media_dir, exist_ok=True)
+
+            cmd = ['pandoc', filepath, '-f', 'docx', '-t', 'html', f'--extract-media={media_dir}', '--mathjax']
+            if options:
+                cmd.extend(options.split())
+            cmd.extend(['-o', output_path])
+
+            subprocess.run(cmd, check=True)
+
+            content = ""
+            try:
+                with open(output_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+            except UnicodeDecodeError:
+                content = "[Binary content - download to view]"
+
+            # Post-process HTML: convert all images to PNG and embed as base64 data URIs
+            if content and '<img' in content:
+                soup = BeautifulSoup(content, 'html.parser')
+
+                def _to_png_data_uri(image_path):
+                    try:
+                        mime = 'image/png'
+                        with open(image_path, 'rb') as img_f:
+                            encoded = base64.b64encode(img_f.read()).decode('utf-8')
+                        return f"data:{mime};base64,{encoded}"
+                    except Exception:
+                        return None
+
+                def _convert_wmf_emf_to_png(image_path):
+                    try:
+                        target_path = os.path.splitext(image_path)[0] + '.png'
+                        # Prefer ImageMagick for vector formats, keep transparent background for formulas
+                        subprocess.run(['convert', '-density', '300', image_path, '-background', 'none', '-alpha', 'on', target_path], check=True)
+                        return target_path if os.path.exists(target_path) and os.path.getsize(target_path) > 0 else None
+                    except Exception:
+                        return None
+
+                def _convert_any_to_png(image_path):
+                    try:
+                        if not os.path.exists(image_path):
+                            return None
+                        if os.path.splitext(image_path)[1].lower() == '.png':
+                            return image_path
+                        target_path = os.path.splitext(image_path)[0] + '.png'
+                        subprocess.run(['convert', image_path, target_path], check=True)
+                        return target_path if os.path.exists(target_path) and os.path.getsize(target_path) > 0 else None
+                    except Exception:
+                        return None
+
+                for img in soup.find_all('img'):
+                    src = img.get('src')
+                    if not src or src.startswith('http://') or src.startswith('https://') or src.startswith('data:'):
+                        continue
+
+                    # Resolve filesystem path for extracted media
+                    abs_path = os.path.join(UPLOAD_FOLDER, src) if not os.path.isabs(src) else src
+                    if not os.path.exists(abs_path):
+                        # Try resolve relative to media_dir
+                        candidate = os.path.join(media_dir, os.path.basename(src))
+                        abs_path = candidate if os.path.exists(candidate) else abs_path
+
+                    ext = os.path.splitext(abs_path)[1].lower()
+                    converted = None
+                    if ext in ['.wmf', '.emf']:
+                        converted = _convert_wmf_emf_to_png(abs_path)
+                    else:
+                        converted = _convert_any_to_png(abs_path)
+
+                    if converted and os.path.exists(converted):
+                        data_uri = _to_png_data_uri(converted)
+                        if data_uri:
+                            img['src'] = data_uri
+                        else:
+                            rel = os.path.relpath(converted, UPLOAD_FOLDER)
+                            rel = rel.replace('\\', '/').lstrip('\\/')
+                            img['src'] = rel
+
+                new_content = str(soup)
+                # Ensure MathJax (LaTeX) renders crisply with transparent background using SVG renderer
+                try:
+                    soup_head = soup.head
+                    if soup_head is None and soup.html is not None:
+                        soup_head = soup.new_tag('head')
+                        soup.html.insert(0, soup_head)
+                    if soup_head is not None:
+                        # Remove any existing MathJax includes to avoid duplicates or CHTML renderer
+                        for script in soup_head.find_all('script'):
+                            src_attr = script.get('src', '')
+                            if 'mathjax' in src_attr.lower():
+                                script.decompose()
+                        # Inject MathJax v3 SVG configuration
+                        cfg = soup.new_tag('script')
+                        cfg.string = (
+                            "window.MathJax = {\n"
+                            "  tex: { inlineMath: [['$','$'], ['\\\\(','\\\\)']], displayMath: [['$$','$$'], ['\\\\[','\\\\]']] },\n"
+                            "  svg: { scale: 1.15, minScale: 1, fontCache: 'global' },\n"
+                            "  options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }\n"
+                            "};"
+                        )
+                        soup_head.append(cfg)
+                        # Add SVG renderer
+                        mj = soup.new_tag('script', src='https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js')
+                        soup_head.append(mj)
+                        # Tweak CSS for transparency and crisper rendering
+                        style_tag = soup.new_tag('style')
+                        style_tag.string = (
+                            'mjx-container { background: transparent !important; font-size: 110%; }\n'
+                            'mjx-container, math { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }\n'
+                            'mjx-container[jax="SVG"] { direction: ltr; }'
+                        )
+                        soup_head.append(style_tag)
+                        new_content = str(soup)
+                except Exception:
+                    pass
+                try:
+                    with open(output_path, 'w', encoding='utf-8') as f:
+                        f.write(new_content)
+                    content = new_content
+                except Exception:
+                    # If we fail to write updated HTML, still return the original
+                    pass
+
+            return {
+                'success': True,
+                'downloadUrl': f'/download/{output_filename}',
+                'content': content
+            }
+
+        # Generic conversion path
         cmd = ['pandoc', filepath, '-f', from_format, '-t', to_format]
         if options:
             cmd.extend(options.split())
         cmd.extend(['-o', output_path])
-        
+
         subprocess.run(cmd, check=True)
-        
+
         content = ""
         try:
             with open(output_path, 'r', encoding='utf-8') as f:
                 content = f.read()
         except UnicodeDecodeError:
             content = "[Binary content - download to view]"
-        
+
         return {
             'success': True,
             'downloadUrl': f'/download/{output_filename}',
